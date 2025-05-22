@@ -72,7 +72,9 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Usuario registrado con éxito',
             'token' => $token,
+            'id' => $user->id,
             'name' => $user->name,
+            'last_name' => $user->last_name,
             'roles' => $user->getRoleNames(),
         ], 201);
     }
@@ -112,7 +114,9 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
+            'id' => $user->id,
             'name' => $user->name,
+            'last_name' => $user->last_name,
             'email' => $user->email,
             'roles' => $user->getRoleNames(),
             'is_active' => $user->is_active,

@@ -10,57 +10,50 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Rutas de autenticación
-//auth
+Route::prefix('auth')->group(function () {
+    Route::post('check-email', [AuthController::class, 'checkEmail']);
+    Route::post('login', [AuthController::class, 'login']);
+    Route::post('register', [AuthController::class, 'register']);
+    Route::post('/password/email', [AuthController::class, 'sendResetPasswordEmail']);
+    Route::post('/password/reset', [AuthController::class, 'resetPassword']);
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+});
 
-Route::post('auth/check-email', [AuthController::class, 'checkEmail']);
-Route::post('auth/login', [AuthController::class, 'login']);
-Route::post('auth/register', [AuthController::class, 'register']);
-Route::post('/password/email', [AuthController::class, 'sendResetPasswordEmail']);
-Route::post('/password/reset', [AuthController::class, 'resetPassword']);
-
+// Ruta para obtener el usuario autenticado
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// Rutas de emprendimientos (requiere autenticación)
+Route::middleware('auth:sanctum')->group(function () {
 
 
+    // Rutas tipos negocio
 
-// Rutas de administración (requiere autenticación y permiso de 'Ver Rutas')
+});
 
+    Route::get('/emprendimientos', [EmprendimientoUsuarioController::class, 'index']);
+    Route::post('/emprendimientos', [EmprendimientoUsuarioController::class, 'store']);
+    Route::get('/emprendimientos/{id}', [EmprendimientoUsuarioController::class, 'show']);
+    Route::put('/emprendimientos/{id}', [EmprendimientoUsuarioController::class, 'update']);
+    Route::delete('/emprendimientos/{id}', [EmprendimientoUsuarioController::class, 'destroy']);
 
+    Route::get('/tipos-negocio', [TipoDeNegocioController::class, 'index']);
+    Route::post('/tipos-negocio', [TipoDeNegocioController::class, 'store']);
+    Route::get('/tipos-negocio/{id}', [TipoDeNegocioController::class, 'show']);
+    Route::put('/tipos-negocio/{id}', [TipoDeNegocioController::class, 'update']);
+    Route::delete('/tipos-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
 
-//rutas emprendimientos
-Route::get('/emprendimientos', [EmprendimientoUsuarioController::class, 'index']);
-Route::post('/emprendimientos', [EmprendimientoUsuarioController::class, 'store']);
-Route::get('/emprendimientos/{id}', [EmprendimientoUsuarioController::class, 'show']);
-Route::put('/emprendimientos/{id}', [EmprendimientoUsuarioController::class, 'update']);
-Route::delete('/emprendimientos/{id}', [EmprendimientoUsuarioController::class, 'destroy']);
+    // Categorías de servicios
+    Route::apiResource('categorias-servicios', CategoriaServicioApiController::class);
 
+    // Rutas zonas turísticas
+    Route::get('/zonas-turisticas', [ZonaTuristicaApiController::class, 'index']);
+    Route::post('/zonas-turisticas', [ZonaTuristicaApiController::class, 'store']);
+    Route::get('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'show']);
+    Route::put('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'update']);
+    Route::delete('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'destroy']);
 
-
-
-//rutas tipos negocio
-Route::get('/tipos-negocio', [TipoDeNegocioController::class, 'index']);
-Route::post('/tipos-negocio', [TipoDeNegocioController::class, 'store']);
-Route::get('/tipos-negocio/{id}', [TipoDeNegocioController::class, 'show']);
-Route::put('/tipos-negocio/{id}', [TipoDeNegocioController::class, 'update']);
-Route::delete('/tipos-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
-
-
-//categoria servicios
-Route::apiResource('categorias-servicios', CategoriaServicioApiController::class);
-
-
-
-
-Route::get('/zonas-turisticas', [ZonaTuristicaApiController::class, 'index']);
-Route::post('/zonas-turisticas', [ZonaTuristicaApiController::class, 'store']);
-Route::get('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'show']);
-Route::put('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'update']);
-Route::delete('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'destroy']);
-
-
-//imagenenes
-
+// Rutas para imágenes (se podrían gestionar como una API separada si es necesario)
 Route::post('/imagenes', [ImageableController::class, 'store']);
 Route::get('/imagenes/{type}/{id}', [ImageableController::class, 'index']);
