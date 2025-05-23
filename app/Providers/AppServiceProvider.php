@@ -22,9 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-         View::composer('*', function ($view) {
-        $municipalidad = MunicipalidadDescripcion::with('images')->first();
-        $view->with('municipalidad', $municipalidad);
-    });
+        View::composer('*', function ($view) {
+            $municipalidad = MunicipalidadDescripcion::first();  // Sin with('images')
+            $view->with('municipalidad', $municipalidad);
+        });
+
     }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoriaServicioApiController;
 use App\Http\Controllers\Api\ImageableController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ZonaTuristicaApiController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
 use App\Http\Controllers\TipoDeNegocioController;
@@ -24,13 +25,15 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Rutas de emprendimientos (requiere autenticación)
-Route::middleware('auth:sanctum')->group(function () {
 
 
-    // Rutas tipos negocio
 
-});
+    Route::get('users', [UserController::class, 'index']);
+    Route::patch('users/{id}/active', [UserController::class, 'toggleActive']);
+    Route::patch('users/{id}/password', [UserController::class, 'changePassword']);
+
+
+
 
     Route::get('/emprendimientos', [EmprendimientoUsuarioController::class, 'index']);
     Route::post('/emprendimientos', [EmprendimientoUsuarioController::class, 'store']);
@@ -55,5 +58,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'destroy']);
 
 // Rutas para imágenes (se podrían gestionar como una API separada si es necesario)
-Route::post('/imagenes', [ImageableController::class, 'store']);
-Route::get('/imagenes/{type}/{id}', [ImageableController::class, 'index']);
+// Route::post('/imagenes', [ImageableController::class, 'store']);
+// Route::get('/imagenes/{type}/{id}', [ImageableController::class, 'index']);
+
