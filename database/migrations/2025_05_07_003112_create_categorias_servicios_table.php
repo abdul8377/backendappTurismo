@@ -15,8 +15,8 @@ return new class extends Migration
             $table->bigIncrements('categorias_servicios_id');
             $table->string('nombre');
             $table->text('descripcion');
-            $table->string('imagen_url', 255)->nullable();
-            $table->string('icono_url')->nullable();
+            $table->string('imagen', 255)->nullable();
+            $table->string('icono')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });

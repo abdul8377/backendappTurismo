@@ -14,11 +14,14 @@ use Illuminate\Database\Seeder;
 
 class EmprendedorSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
     public function run()
     {
-        $role = Role::findOrCreate('Emprendedor');
-
-        // --- USUARIO 1 - Restaurante Andino ---
+        // 1. Crear el usuario para el Restaurante (Tipo de Negocio 1)
         $user1 = User::create([
             'name' => 'Juan',
             'last_name' => 'Perez',
@@ -29,9 +32,12 @@ class EmprendedorSeeder extends Seeder
             'country' => 'Perú',
             'zip_code' => '12345',
         ]);
+
+        $role = Role::findOrCreate('Emprendedor');
         $user1->assignRole($role);
 
-        PerfilEmprendedor::create([
+        // Crear perfil para el emprendedor 1
+        $perfil1 = PerfilEmprendedor::create([
             'users_id' => $user1->id,
             'dni' => '12345678',
             'telefono_contacto' => '987654321',
@@ -43,119 +49,53 @@ class EmprendedorSeeder extends Seeder
             'codigo' => 'EMPR001',
         ]);
 
+        // Crear el emprendimiento 1 (Restaurante)
         $emprendimiento1 = Emprendimiento::create([
             'nombre' => 'Restaurante Andino',
             'descripcion' => 'Establecimiento dedicado a la preparación y venta de platos típicos andinos.',
-            'tipo_negocio_id' => 1,
+            'tipo_negocio_id' => 1, // Relación con el tipo de negocio Restaurante
             'direccion' => 'Capachica, Puno, Perú',
             'telefono' => '987654321',
             'estado' => 'activo',
         ]);
+
+        // Relacionar emprendimiento con el usuario (Emprendedor)
         $user1->emprendimientos()->attach($emprendimiento1->emprendimientos_id);
 
-        $categoriaAlimentos = CategoriaProducto::find(4); // Alimentos Típicos
+        // Crear productos para el restaurante (categoría alimentos típicos)
+        $categoriaProducto = CategoriaProducto::find(4); // Categoría de alimentos típicos
 
-        // Productos existentes + 10 nuevos productos para restaurante andino con imagen_url
-        $productos = [
-            [
-                'nombre' => 'Torreja de Quinua',
-                'descripcion' => 'Plato típico de quinua servido con salsa de frutas nativas.',
-                'precio' => 15.00,
-                'unidad' => 'Unidad',
-                'stock' => 50,
-                'imagen_url' => 'images/torreja_quinua.jpg',
-            ],
-            [
-                'nombre' => 'T’himpo de Pejerrey',
-                'descripcion' => 'Sopa tradicional con pejerrey, una delicia del Lago Titicaca.',
-                'precio' => 18.00,
-                'unidad' => 'Unidad',
-                'stock' => 40,
-                'imagen_url' => 'images/thimpo_pejerrey.jpg',
-            ],
-            [
-                'nombre' => 'Sopa de Illaco',
-                'descripcion' => 'Sopa tradicional andina hecha con ingredientes locales.',
-                'precio' => 12.00,
-                'unidad' => 'Unidad',
-                'stock' => 30,
-                'imagen_url' => 'images/sopa_illaco.jpg',
-            ],
-            [
-                'nombre' => 'Pachamanca',
-                'descripcion' => 'Plato tradicional cocido bajo tierra con piedras calientes.',
-                'precio' => 25.00,
-                'unidad' => 'Unidad',
-                'stock' => 20,
-                'imagen_url' => 'images/pachamanca.jpg',
-            ],
-            [
-                'nombre' => 'Caldo de Gallina',
-                'descripcion' => 'Sopa nutritiva y tradicional hecha con gallina criolla.',
-                'precio' => 20.00,
-                'unidad' => 'Unidad',
-                'stock' => 35,
-                'imagen_url' => 'images/caldo_gallina.jpg',
-            ],
-            // 10 productos nuevos
-            [
-                'nombre' => 'Ceviche de Trucha',
-                'descripcion' => 'Ceviche fresco hecho con trucha del lago Titicaca.',
-                'precio' => 22.00,
-                'unidad' => 'Unidad',
-                'stock' => 45,
-                'imagen_url' => 'images/ceviche_trucha.jpg',
-            ],
-            [
-                'nombre' => 'Charqui de Alpaca',
-                'descripcion' => 'Carne seca tradicional de alpaca.',
-                'precio' => 35.00,
-                'unidad' => 'Paquete',
-                'stock' => 60,
-                'imagen_url' => 'images/charqui_alpaca.jpg',
-            ],
-            [
-                'nombre' => 'Queso Fresco',
-                'descripcion' => 'Queso fresco producido en la zona andina.',
-                'precio' => 18.00,
-                'unidad' => 'Unidad',
-                'stock' => 50,
-                'imagen_url' => 'images/queso_fresco.jpg',
-            ],
-            [
-                'nombre' => 'Chicha de Jora',
-                'descripcion' => 'Bebida tradicional fermentada de maíz.',
-                'precio' => 10.00,
-                'unidad' => 'Botella',
-                'stock' => 80,
-                'imagen_url' => 'images/chicha_jora.jpg',
-            ],
-            [
-                'nombre' => 'Humitas',
-                'descripcion' => 'Pasteles de maíz envueltos en hojas de choclo.',
-                'precio' => 12.00,
-                'unidad' => 'Unidad',
-                'stock' => 70,
-                'imagen_url' => 'images/humitas.jpg',
-            ],
-            [
-                'nombre' => 'Caldo de Carnero',
-                'descripcion' => 'Caldo tradicional de carne de carnero.',
-                'precio' => 23.00,
-                'unidad' => 'Unidad',
-                'stock' => 25,
-                'imagen_url' => 'images/caldo_carnero.jpg',
-            ],
-        ];
+        Producto::create([
+            'emprendimientos_id' => $emprendimiento1->emprendimientos_id,
+            'nombre' => 'Torreja de Quinua',
+            'descripcion' => 'Plato típico de quinua servido con salsa de frutas nativas.',
+            'precio' => 15.00,
+            'unidad' => 'Unidad',
+            'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
+            'stock' => 50,
+        ]);
 
-        foreach ($productos as $producto) {
-            Producto::create(array_merge($producto, [
-                'emprendimientos_id' => $emprendimiento1->emprendimientos_id,
-                'categorias_productos_id' => $categoriaAlimentos->categorias_productos_id,
-            ]));
-        }
+        Producto::create([
+            'emprendimientos_id' => $emprendimiento1->emprendimientos_id,
+            'nombre' => 'T’himpo de Pejerrey',
+            'descripcion' => 'Sopa tradicional con pejerrey, una delicia del Lago Titicaca.',
+            'precio' => 18.00,
+            'unidad' => 'Unidad',
+            'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
+            'stock' => 40,
+        ]);
 
-        // --- USUARIO 2 - Tienda Artesanal ---
+        Producto::create([
+            'emprendimientos_id' => $emprendimiento1->emprendimientos_id,
+            'nombre' => 'Sopa de Illaco',
+            'descripcion' => 'Sopa tradicional andina hecha con ingredientes locales.',
+            'precio' => 12.00,
+            'unidad' => 'Unidad',
+            'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
+            'stock' => 30,
+        ]);
+
+        // 2. Crear el usuario para la Tienda de Artesanías (Tipo de Negocio 2)
         $user2 = User::create([
             'name' => 'Maria',
             'last_name' => 'Lopez',
@@ -166,9 +106,11 @@ class EmprendedorSeeder extends Seeder
             'country' => 'Perú',
             'zip_code' => '12346',
         ]);
+
         $user2->assignRole($role);
 
-        PerfilEmprendedor::create([
+        // Crear perfil para el emprendedor 2
+        $perfil2 = PerfilEmprendedor::create([
             'users_id' => $user2->id,
             'dni' => '87654321',
             'telefono_contacto' => '987654322',
@@ -180,120 +122,56 @@ class EmprendedorSeeder extends Seeder
             'codigo' => 'EMPR002',
         ]);
 
+        // Crear el emprendimiento 2 (Tienda de Artesanías)
         $emprendimiento2 = Emprendimiento::create([
             'nombre' => 'Tienda Artesanal Capachica',
             'descripcion' => 'Venta de productos artesanales como textiles bordados y cerámica.',
-            'tipo_negocio_id' => 2,
+            'tipo_negocio_id' => 2, // Relación con el tipo de negocio Tienda de Artesanías
             'direccion' => 'Capachica, Puno, Perú',
             'telefono' => '987654322',
             'estado' => 'activo',
         ]);
+
+        // Relacionar emprendimiento con el usuario (Emprendedor)
         $user2->emprendimientos()->attach($emprendimiento2->emprendimientos_id);
 
-        $categoriaTextiles = CategoriaProducto::find(1); // Artesanías Textiles
-        $categoriaCeramica = CategoriaProducto::find(2); // Cerámica
+        // Crear productos para la tienda de artesanías (categoría artesanías textiles y cerámica)
+        $categoriaProducto = CategoriaProducto::find(1); // Categoría de Artesanías Textiles
 
-        // Productos adicionales tienda artesanal
-        $productosArtesania = [
-            [
-                'nombre' => 'Poncho de Lana',
-                'descripcion' => 'Poncho tejido a mano con lana de alpaca.',
-                'precio' => 40.00,
-                'unidad' => 'Unidad',
-                'stock' => 100,
-                'imagen_url' => 'images/poncho_lana.jpg',
-                'categorias_productos_id' => $categoriaTextiles->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Figura de Cerámica',
-                'descripcion' => 'Figura artesanal hecha a mano, típica de la región de Capachica.',
-                'precio' => 25.00,
-                'unidad' => 'Unidad',
-                'stock' => 50,
-                'imagen_url' => 'images/figura_ceramica.jpg',
-                'categorias_productos_id' => $categoriaCeramica->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Plato de Cerámica Pintada',
-                'descripcion' => 'Plato pintado a mano con motivos tradicionales.',
-                'precio' => 30.00,
-                'unidad' => 'Unidad',
-                'stock' => 60,
-                'imagen_url' => 'images/plato_ceramica.jpg',
-                'categorias_productos_id' => $categoriaCeramica->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Bufanda de Alpaca',
-                'descripcion' => 'Bufanda suave y cálida hecha con lana de alpaca.',
-                'precio' => 35.00,
-                'unidad' => 'Unidad',
-                'stock' => 75,
-                'imagen_url' => 'images/bufanda_alpaca.jpg',
-                'categorias_productos_id' => $categoriaTextiles->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Sombrero Andino',
-                'descripcion' => 'Sombrero tradicional tejido a mano.',
-                'precio' => 22.00,
-                'unidad' => 'Unidad',
-                'stock' => 80,
-                'imagen_url' => 'images/sombrero_andino.jpg',
-                'categorias_productos_id' => $categoriaTextiles->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Alfombra Tejida',
-                'descripcion' => 'Alfombra decorativa con diseños tradicionales.',
-                'precio' => 60.00,
-                'unidad' => 'Unidad',
-                'stock' => 40,
-                'imagen_url' => 'images/alfombra_tejida.jpg',
-                'categorias_productos_id' => $categoriaTextiles->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Juego de Vasos Cerámicos',
-                'descripcion' => 'Vasos hechos a mano con pinturas tradicionales.',
-                'precio' => 45.00,
-                'unidad' => 'Set',
-                'stock' => 30,
-                'imagen_url' => 'images/vasos_ceramicos.jpg',
-                'categorias_productos_id' => $categoriaCeramica->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Collar de Piedras',
-                'descripcion' => 'Collar artesanal hecho con piedras naturales.',
-                'precio' => 28.00,
-                'unidad' => 'Unidad',
-                'stock' => 70,
-                'imagen_url' => 'images/collar_piedras.jpg',
-                'categorias_productos_id' => $categoriaTextiles->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Bolso de Mano',
-                'descripcion' => 'Bolso hecho a mano con materiales naturales.',
-                'precio' => 38.00,
-                'unidad' => 'Unidad',
-                'stock' => 55,
-                'imagen_url' => 'images/bolso_mano.jpg',
-                'categorias_productos_id' => $categoriaTextiles->categorias_productos_id,
-            ],
-            [
-                'nombre' => 'Tapiz Decorativo',
-                'descripcion' => 'Tapiz con motivos andinos para decoración.',
-                'precio' => 50.00,
-                'unidad' => 'Unidad',
-                'stock' => 25,
-                'imagen_url' => 'images/tapiz_decorativo.jpg',
-                'categorias_productos_id' => $categoriaTextiles->categorias_productos_id,
-            ],
-        ];
+        Producto::create([
+            'emprendimientos_id' => $emprendimiento2->emprendimientos_id,
+            'nombre' => 'Poncho de Lana',
+            'descripcion' => 'Poncho tejido a mano con lana de alpaca.',
+            'precio' => 40.00,
+            'unidad' => 'Unidad',
+            'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
+            'stock' => 100,
+        ]);
 
-        foreach ($productosArtesania as $producto) {
-            Producto::create(array_merge($producto, [
-                'emprendimientos_id' => $emprendimiento2->emprendimientos_id,
-            ]));
-        }
+        // Cambiar la categoría de productos para Cerámica
+        $categoriaProducto = CategoriaProducto::find(2); // Categoría Cerámica
 
-        // --- USUARIO 3 - Agencia de Viajes ---
+        Producto::create([
+            'emprendimientos_id' => $emprendimiento2->emprendimientos_id,
+            'nombre' => 'Figura de Cerámica',
+            'descripcion' => 'Figura artesanal hecha a mano, típica de la región de Capachica.',
+            'precio' => 25.00,
+            'unidad' => 'Unidad',
+            'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
+            'stock' => 50,
+        ]);
+
+        Producto::create([
+            'emprendimientos_id' => $emprendimiento2->emprendimientos_id,
+            'nombre' => 'Plato de Cerámica Pintada',
+            'descripcion' => 'Plato pintado a mano con motivos tradicionales.',
+            'precio' => 30.00,
+            'unidad' => 'Unidad',
+            'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
+            'stock' => 60,
+        ]);
+
+        // 3. Crear el usuario para la Agencia de Viajes (Tipo de Negocio 3)
         $user3 = User::create([
             'name' => 'Carlos',
             'last_name' => 'Sánchez',
@@ -304,9 +182,11 @@ class EmprendedorSeeder extends Seeder
             'country' => 'Perú',
             'zip_code' => '12347',
         ]);
+
         $user3->assignRole($role);
 
-        PerfilEmprendedor::create([
+        // Crear perfil para el emprendedor 3
+        $perfil3 = PerfilEmprendedor::create([
             'users_id' => $user3->id,
             'dni' => '11223344',
             'telefono_contacto' => '987654323',
@@ -318,118 +198,31 @@ class EmprendedorSeeder extends Seeder
             'codigo' => 'EMPR003',
         ]);
 
+        // Crear el emprendimiento 3 (Agencia de Viajes)
         $emprendimiento3 = Emprendimiento::create([
             'nombre' => 'Turismo Capachica',
             'descripcion' => 'Ofrecemos paquetes turísticos a las comunidades de Capachica, Llachón, y Escallani.',
-            'tipo_negocio_id' => 3,
+            'tipo_negocio_id' => 3, // Relación con el tipo de negocio Agencia de Viajes
             'direccion' => 'Capachica, Puno, Perú',
             'telefono' => '987654323',
             'estado' => 'activo',
         ]);
+
+        // Relacionar emprendimiento con el usuario (Emprendedor)
         $user3->emprendimientos()->attach($emprendimiento3->emprendimientos_id);
 
-        $categoriaServicio = CategoriaServicio::find(1); // Turismo Vivencial
+        // Crear servicios para la agencia de viajes (categoría servicios)
+        $categoriaServicio = CategoriaServicio::find(1); // Suponiendo que Turismo Vivencial ya existe
 
-        // Servicios existentes + 10 nuevos servicios con imagen_url e imagen_destacada
-        $servicios = [
-            [
-                'nombre' => 'Tour Cultural por Capachica',
-                'descripcion' => 'Recorrido cultural por las comunidades locales, con enfoque en la historia y tradiciones.',
-                'precio' => 50.00,
-                'capacidad_maxima' => 10,
-                'duracion_servicio' => 4,
-                'imagen_url' => 'images/tour_cultural_capachica.jpg',
-                'imagen_destacada' => 'images/tour_cultural_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Excursión a Llachón',
-                'descripcion' => 'Excursión guiada a la comunidad de Llachón con actividades culturales y gastronómicas.',
-                'precio' => 45.00,
-                'capacidad_maxima' => 15,
-                'duracion_servicio' => 6,
-                'imagen_url' => 'images/excursion_llachon.jpg',
-                'imagen_destacada' => 'images/excursion_llachon_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Senderismo en la Península',
-                'descripcion' => 'Ruta de senderismo con guías expertos, observación de flora y fauna.',
-                'precio' => 40.00,
-                'capacidad_maxima' => 12,
-                'duracion_servicio' => 5,
-                'imagen_url' => 'images/senderismo_penisula.jpg',
-                'imagen_destacada' => 'images/senderismo_destacada.jpg',
-            ],
-            // 10 servicios adicionales
-            [
-                'nombre' => 'Tour Gastronómico Andino',
-                'descripcion' => 'Descubre la gastronomía típica con visitas a productores locales.',
-                'precio' => 55.00,
-                'capacidad_maxima' => 8,
-                'duracion_servicio' => 5,
-                'imagen_url' => 'images/tour_gastronomico.jpg',
-                'imagen_destacada' => 'images/tour_gastronomico_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Tour Fotográfico',
-                'descripcion' => 'Ruta para amantes de la fotografía con paisajes naturales increíbles.',
-                'precio' => 60.00,
-                'capacidad_maxima' => 6,
-                'duracion_servicio' => 6,
-                'imagen_url' => 'images/tour_fotografico.jpg',
-                'imagen_destacada' => 'images/tour_fotografico_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Visita a Comunidades',
-                'descripcion' => 'Visita a comunidades tradicionales con actividades culturales.',
-                'precio' => 45.00,
-                'capacidad_maxima' => 10,
-                'duracion_servicio' => 7,
-                'imagen_url' => 'images/visita_comunidades.jpg',
-                'imagen_destacada' => 'images/visita_comunidades_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Tour de Avistamiento de Aves',
-                'descripcion' => 'Excursión para observar aves endémicas en su hábitat natural.',
-                'precio' => 50.00,
-                'capacidad_maxima' => 10,
-                'duracion_servicio' => 4,
-                'imagen_url' => 'images/tour_avistamiento_aves.jpg',
-                'imagen_destacada' => 'images/tour_avistamiento_aves_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Tour Nocturno Estelar',
-                'descripcion' => 'Observación de estrellas con guías astronómicos expertos.',
-                'precio' => 55.00,
-                'capacidad_maxima' => 5,
-                'duracion_servicio' => 3,
-                'imagen_url' => 'images/tour_nocturno.jpg',
-                'imagen_destacada' => 'images/tour_nocturno_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Tour Ecológico',
-                'descripcion' => 'Ruta de ecoturismo con aprendizaje sobre flora y fauna locales.',
-                'precio' => 45.00,
-                'capacidad_maxima' => 12,
-                'duracion_servicio' => 6,
-                'imagen_url' => 'images/tour_ecologico.jpg',
-                'imagen_destacada' => 'images/tour_ecologico_destacada.jpg',
-            ],
-            [
-                'nombre' => 'Paseo en Kayak',
-                'descripcion' => 'Paseo en kayak por el Lago Titicaca, con guía y equipo incluido.',
-                'precio' => 65.00,
-                'capacidad_maxima' => 8,
-                'duracion_servicio' => 4,
-                'imagen_url' => 'images/paseo_kayak.jpg',
-                'imagen_destacada' => 'images/paseo_kayak_destacada.jpg',
-            ],
-        ];
-
-        foreach ($servicios as $servicio) {
-            Servicio::create(array_merge($servicio, [
-                'emprendimientos_id' => $emprendimiento3->emprendimientos_id,
-                'categorias_servicios_id' => $categoriaServicio->categorias_servicios_id,
-            ]));
-        }
+        Servicio::create([
+            'emprendimientos_id' => $emprendimiento3->emprendimientos_id,
+            'nombre' => 'Tour Cultural por Capachica',
+            'descripcion' => 'Recorrido cultural por las comunidades locales, con enfoque en la historia y tradiciones.',
+            'precio' => 50.00,
+            'capacidad_maxima' => 10,
+            'duracion_servicio' => 4,
+            'imagen_destacada' => 'images/tour_capachica.jpg',
+            'categorias_servicios_id' => $categoriaServicio->categorias_servicios_id,
+        ]);
     }
 }

@@ -54,7 +54,7 @@ class ZonaTuristicaApiController extends Controller
                 'updated_at'     => now(),
             ]);
         }
-
+        $zona->load('images');
         return response()->json([
             'message' => 'Zona turística creada correctamente',
             'zona'    => $zona->load('images')
@@ -103,6 +103,7 @@ class ZonaTuristicaApiController extends Controller
                 'updated_at'     => now(),
             ]);
         }
+        $zona->load('images');
 
         return response()->json([
             'message' => 'Zona turística actualizada correctamente',

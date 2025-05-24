@@ -9,9 +9,6 @@ use Illuminate\Http\JsonResponse;
 
 class ApiCategoriaController extends Controller
 {
-    /**
-     * Retorna todas las categorías de servicios y productos.
-     */
     public function index(): JsonResponse
     {
         $categoriasServicios = CategoriaServicio::all();
@@ -23,12 +20,9 @@ class ApiCategoriaController extends Controller
         ], 200);
     }
 
-    /**
-     * Retorna los productos de una categoría producto por su ID.
-     */
     public function productosPorCategoria(int $id): JsonResponse
     {
-        $categoria = CategoriaProducto::with('productos')->find($id);
+        $categoria = CategoriaProducto::with(['productos.emprendimiento'])->find($id);
 
         if (!$categoria) {
             return response()->json(['message' => 'Categoría de producto no encontrada'], 404);
@@ -40,12 +34,9 @@ class ApiCategoriaController extends Controller
         ], 200);
     }
 
-    /**
-     * Retorna los servicios de una categoría servicio por su ID.
-     */
     public function serviciosPorCategoria(int $id): JsonResponse
     {
-        $categoria = CategoriaServicio::with('servicios')->find($id);
+        $categoria = CategoriaServicio::with(['servicios.emprendimiento'])->find($id);
 
         if (!$categoria) {
             return response()->json(['message' => 'Categoría de servicio no encontrada'], 404);

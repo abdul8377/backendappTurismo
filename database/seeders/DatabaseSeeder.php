@@ -42,6 +42,8 @@ class DatabaseSeeder extends Seeder
 
         // Municipalidad (solo un registro)
         $this->call(MunicipalidadDescripcionSeeder::class);
+        // Zonas turisticas
+        $this->call(ZonasTuristicasSeeder::class);
     }
 }
 

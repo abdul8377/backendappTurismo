@@ -10,6 +10,8 @@ return array(
     'App\\Http\\Controllers\\Api\\AuthController' => $baseDir . '/app/Http/Controllers/Api/AuthController.php',
     'App\\Http\\Controllers\\Api\\CategoriaServicioApiController' => $baseDir . '/app/Http/Controllers/Api/CategoriaServicioApiController.php',
     'App\\Http\\Controllers\\Api\\ImageableController' => $baseDir . '/app/Http/Controllers/Api/ImageableController.php',
+    'App\\Http\\Controllers\\Api\\TipoDeNegocioController' => $baseDir . '/app/Http/Controllers/Api/TipoDeNegocioController.php',
+    'App\\Http\\Controllers\\Api\\UserController' => $baseDir . '/app/Http/Controllers/Api/UserController.php',
     'App\\Http\\Controllers\\Api\\ZonaTuristicaApiController' => $baseDir . '/app/Http/Controllers/Api/ZonaTuristicaApiController.php',
     'App\\Http\\Controllers\\Auth\\LoginController' => $baseDir . '/app/Http/Controllers/Auth/LoginController.php',
     'App\\Http\\Controllers\\Auth\\RegisterController' => $baseDir . '/app/Http/Controllers/Auth/RegisterController.php',
