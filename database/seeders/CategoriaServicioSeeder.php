@@ -12,37 +12,29 @@ class CategoriaServicioSeeder extends Seeder
         CategoriaServicio::create([
             'nombre' => 'Turismo Vivencial',
             'descripcion' => 'Experiencias auténticas donde los visitantes conviven con familias locales y aprenden sobre sus tradiciones.',
-            'imagen' => 'images/turismo_vivencial.jpg',
-            'icono' => 'iconos/turismo_vivencial.png'
-
-            /* id 1 */
+            'imagen_url' => 'images/turismo_vivencial.jpeg',
+            'icono_url' => 'iconos/turismo_vivencial.png'
         ]);
 
         CategoriaServicio::create([
             'nombre' => 'Gastronomía Andina',
             'descripcion' => 'Ofrecemos platos tradicionales como la torreja de quinua, sopa de illaco y t’himpo de pejerrey.',
-            'imagen' => 'images/gastronomia_andina.jpg',
-            'icono' => 'iconos/gastronomia_andina.png'
-
-            /* id 2 */
+            'imagen_url' => 'images/gastronomia_andina.jpg',
+            'icono_url' => 'iconos/gastronomia_andina.png'
         ]);
 
         CategoriaServicio::create([
             'nombre' => 'Ecoturismo y Senderismo',
             'descripcion' => 'Rutas naturales en la península de Capachica, con miradores panorámicos y observación de flora y fauna.',
-            'imagen' => 'images/ecoturismo_senderismo.jpg',
-            'icono' => 'iconos/ecoturismo_senderismo.png'
-
-            /* id 3 */
+            'imagen_url' => 'images/ecoturismo_senderismo.jpg',
+            'icono_url' => 'iconos/ecoturismo_senderismo.png'
         ]);
 
         CategoriaServicio::create([
             'nombre' => 'Pesca Artesanal',
             'descripcion' => 'Participa en la pesca tradicional en el Lago Titicaca, utilizando métodos ancestrales.',
-            'imagen' => 'images/pesca_artesanal.jpg',
-            'icono' => 'iconos/pesca_artesanal.png'
-
-            /* id 4 */
+            'imagen_url' => 'images/pesca_artesanal.webp',
+            'icono_url' => 'iconos/pesca_artesanal.png'
         ]);
     }
 }

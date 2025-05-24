@@ -13,13 +13,20 @@ class Producto extends Model
     protected $fillable = [
         'emprendimientos_id',
         'nombre',
+        'imagen_url',
         'descripcion',
         'precio',
         'unidad',
-        'categorias_productos_id', // Cambié de 'categorias_id' a 'categorias_productos_id'
+        'categorias_productos_id',
         'stock',
         'capacidad_total'
     ];
+
+    // Accesor para la URL completa de la imagen
+    public function getImagenUrlAttribute($value): ?string
+    {
+        return $value ? asset('storage/' . $value) : null;
+    }
 
     // Relaciones
     public function emprendimiento()
@@ -29,7 +36,6 @@ class Producto extends Model
 
     public function categoria()
     {
-        // Asegúrate de que los campos de clave foránea y primaria estén correctamente asignados
         return $this->belongsTo(CategoriaProducto::class, 'categorias_productos_id', 'categorias_productos_id');
     }
 }

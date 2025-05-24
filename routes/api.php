@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ZonaTuristicaApiController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
 use App\Http\Controllers\Api\TipoDeNegocioController;
+use App\Http\Controllers\ApiEmprendedor\ApiCategoriaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -80,4 +81,8 @@ Route::delete('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'destroy
 // Obtener los emprendimientos vinculados a un tipo de negocio específico
 Route::get('tipos-de-negocio/{id}/emprendimientos', [TipoDeNegocioController::class, 'getEmprendimientosByTipo']);
 
+Route::get('/categorias/combinadas', [ApiCategoriaController::class, 'index']);
 
+Route::get('/categorias-productos/{id}/productos', [ApiCategoriaController::class, 'productosPorCategoria']);
+
+Route::get('/categorias-servicios/{id}/servicios', [ApiCategoriaController::class, 'serviciosPorCategoria']);

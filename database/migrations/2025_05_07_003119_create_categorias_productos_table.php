@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('categorias_productos', function (Blueprint $table) {
             $table->bigIncrements('categorias_productos_id');
             $table->string('nombre');
-            $table->text('descripcion'); // Campo de descripción
+            $table->text('descripcion');
+            $table->string('imagen_url', 255)->nullable();
+            $table->string('icono_url')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });

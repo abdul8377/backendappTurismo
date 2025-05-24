@@ -15,6 +15,7 @@ return new class extends Migration
             $table->bigIncrements('servicios_id');
             $table->unsignedBigInteger('emprendimientos_id');
             $table->string('nombre', 150);
+            $table->string('imagen_url', 255)->nullable();
             $table->text('descripcion')->nullable();
             $table->decimal('precio', 10, 2);
             $table->integer('capacidad_maxima');

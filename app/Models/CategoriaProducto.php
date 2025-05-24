@@ -9,23 +9,35 @@ class CategoriaProducto extends Model
 {
     use HasFactory;
 
-    // Nombre de la tabla
     protected $table = 'categorias_productos';
-
-    // Campos que pueden ser asignados en masa
-
-       // Especificar la clave primaria si no es 'id'
-    protected $primaryKey = 'categorias_productos_id'; // Aquí especificas la clave primaria correcta
-
-    protected $fillable = ['nombre', 'descripcion'];
-
-    // Desactivar las marcas de tiempo si no las necesitas
+    protected $primaryKey = 'categorias_productos_id';
     public $timestamps = true;
 
-    // Relación con los productos
+    protected $fillable = [
+        'nombre',
+        'descripcion',
+        'imagen_url',
+        'icono_url',
+    ];
+
+    // Accesores para devolver la URL completa desde el storage
+    public function getImagenUrlAttribute(): ?string
+    {
+        return $this->attributes['imagen_url']
+            ? asset('storage/' . $this->attributes['imagen_url'])
+            : null;
+    }
+
+    public function getIconoUrlAttribute(): ?string
+    {
+        return $this->attributes['icono_url']
+            ? asset('storage/' . $this->attributes['icono_url'])
+            : null;
+    }
+
+    // Relación con productos (uno a muchos)
     public function productos()
     {
-        // Asegúrate de que los campos de clave foránea y primaria estén correctamente asignados
         return $this->hasMany(Producto::class, 'categorias_productos_id', 'categorias_productos_id');
     }
 }
