@@ -64,4 +64,17 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Contraseña actualizada']);
     }
+
+        // Obtener un usuario individual por ID
+    public function show($id)
+    {
+        $user = User::with('roles')->find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no encontrado'], 404);
+        }
+
+        return response()->json($user);
+    }
+
 }

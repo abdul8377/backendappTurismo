@@ -14,14 +14,12 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-    use HasRoles, HasApiTokens;
-    use HasPermissions;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens, HasPermissions;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int,string>
      */
     protected $fillable = [
         'name',
@@ -37,27 +35,24 @@ class User extends Authenticatable
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int,string>
      */
     protected $hidden = [
         'password',
         'remember_token',
-        'user',             // ocultamos el hash del código para no exponerlo
+        'user',  // Ocultamos el hash del código para no exponerlo
     ];
 
     /**
      * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string,string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            // No aplicamos cast para 'user' porque es hash bcrypt con sal
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        // No se aplica cast para 'user' porque es hash bcrypt con sal
+    ];
 
     /**
      * Genera un código numérico único de 9 dígitos.
@@ -97,7 +92,9 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user's initials
+     * Obtiene las iniciales del usuario.
+     *
+     * @return string
      */
     public function initials(): string
     {
@@ -108,7 +105,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Relación con el modelo PerfilEmprendedor
+     * Relación uno a uno con PerfilEmprendedor.
      */
     public function perfilEmprendedor()
     {
@@ -116,7 +113,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Relación con el modelo PerfilTurista
+     * Relación uno a uno con PerfilTurista.
      */
     public function perfilTurista()
     {
@@ -124,7 +121,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Relación muchos a muchos con Emprendimiento.
+     * Relación muchos a muchos con Emprendimiento a través de 'emprendimiento_usuarios'.
      */
     public function emprendimientos()
     {
@@ -139,7 +136,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Relación uno a muchos con EmprendimientoUsuario
+     * Relación uno a muchos con EmprendimientoUsuario.
      */
     public function emprendimientoUsuarios()
     {
