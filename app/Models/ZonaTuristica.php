@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class ZonaTuristica extends Model
 {
@@ -38,11 +39,23 @@ class ZonaTuristica extends Model
     }
 
     /**
-     * Accesor para la URL de la primera imagen
+     * 2) Accesor que construye la URL pública de la primera imagen
      */
     public function getImagenUrlAttribute(): ?string
     {
-        $img = $this->images->first();
-        return $img ? URL::to("storage/{$img->url}") : null;
+        // Siempre obtenemos la colección para usar Collection::first()
+        $img = $this->images()->get()->first();
+        if (! $img) {
+            return null;
+        }
+        // Si url ya es absoluta, devuélvela
+        $url = $img->url;
+        if (Str::startsWith($url, ['http://','https://'])) {
+            return $url;
+
+        }
+        // En otro caso, construye usando el enlace storage
+        return URL::to("storage/{$url}");
+
     }
 }

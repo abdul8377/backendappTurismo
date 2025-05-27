@@ -31,7 +31,9 @@ class CategoriaServicioApiController extends Controller
     public function show($id)
     {
         try {
-            $categoria = CategoriaServicio::with('servicios')->findOrFail($id);
+            $categoria = CategoriaServicio::with('servicios')
+                ->findOrFail($id)
+                ->load('images');
             return response()->json($categoria, 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['error' => 'Categoría de servicio no encontrada'], 404);
@@ -42,64 +44,63 @@ class CategoriaServicioApiController extends Controller
 
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'nombre' => 'required|string|max:255',
-                'descripcion' => 'nullable|string',
-                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'icono' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
+        $validated = $request->validate([
+            'nombre'      => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'imagen'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'icono'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
-            // Crear la categoría
-            $categoria = CategoriaServicio::create([
-                'nombre' => $validated['nombre'],
-                'descripcion' => $validated['descripcion'] ?? null,
-            ]);
+        // 1) Prepara el array de datos
+        $data = [
+            'nombre'      => $validated['nombre'],
+            'descripcion' => $validated['descripcion'] ?? null,
+        ];
 
-            // Guarda la imagen si está presente
-            if ($request->hasFile('imagen')) {
-                $imagenPath = $request->file('imagen')->store('categorias', 'public');
 
-                $imagen = Images::create([
-                    'url' => $imagenPath,
-                    'titulo' => $categoria->nombre,
-                ]);
-
-                // Asocia la imagen a la categoría en la tabla imageable
-                DB::table('imageables')->insert([
-                    'images_id' => $imagen->id,
-                    'imageable_id' => $categoria->categorias_servicios_id,
-                    'imageable_type' => CategoriaServicio::class,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            // Guarda el icono si está presente
-            if ($request->hasFile('icono')) {
-                $iconoPath = $request->file('icono')->store('icons', 'public');
-
-                $icono = Images::create([
-                    'url' => $iconoPath,
-                    'titulo' => $categoria->nombre . ' (Icono)',
-                ]);
-
-                // Asocia el icono a la categoría en la tabla imageable
-                DB::table('imageables')->insert([
-                    'images_id' => $icono->id,
-                    'imageable_id' => $categoria->categorias_servicios_id,
-                    'imageable_type' => CategoriaServicio::class,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            return response()->json($categoria, 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => 'Error de validación', 'message' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al crear la categoría de servicio', 'message' => $e->getMessage()], 500);
+        if ($request->hasFile('imagen')) {
+            $path = $request->file('imagen')->store('categorias', 'public');
+            $data['imagen'] = $path;
         }
+
+        if ($request->hasFile('icono')) {
+            $path = $request->file('icono')->store('icons', 'public');
+            $data['icono'] = $path;
+        }
+
+        // 4) Crea la categoría con nombre, descripción, imagen e icono
+        $categoria = CategoriaServicio::create($data);
+
+        // 5) Ahora guarda en images + pivote si lo deseas
+        if (isset($data['imagen'])) {
+            $imagen = Images::create([
+                'url'    => $data['imagen'],
+                'titulo' => $categoria->nombre,
+            ]);
+            DB::table('imageables')->insert([
+                'images_id'      => $imagen->id,
+                'imageable_id'   => $categoria->categorias_servicios_id,
+                'imageable_type' => CategoriaServicio::class,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+        }
+        if (isset($data['icono'])) {
+            $icono = Images::create([
+                'url'    => $data['icono'],
+                'titulo' => $categoria->nombre . ' (Icono)',
+            ]);
+            DB::table('imageables')->insert([
+                'images_id'      => $icono->id,
+                'imageable_id'   => $categoria->categorias_servicios_id,
+                'imageable_type' => CategoriaServicio::class,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+        }
+
+        $categoria->load(['images', 'servicios']);
+        return response()->json($categoria, 201);
     }
 
     // Actualizar la categoría de servicio

@@ -15,7 +15,7 @@ return new class extends Migration
                 $table->bigIncrements('emprendimientos_id');  // Usamos emprendedores_id como clave primaria
                 $table->string('nombre', 255);
                 $table->text('descripcion')->nullable();
-                $table->unsignedBigInteger('tipo_negocio_id');
+                $table->unsignedBigInteger('tipo_negocio_id')->nullable();
                 $table->string('direccion', 255)->nullable();
                 $table->string('telefono', 20)->nullable();
                 $table->enum('estado', ['activo', 'inactivo', 'pendiente'])->default('pendiente');

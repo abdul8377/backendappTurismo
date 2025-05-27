@@ -4,45 +4,89 @@ namespace Database\Seeders;
 
 use App\Models\CategoriaServicio;
 use Illuminate\Database\Seeder;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use App\Models\Images;
+use Illuminate\Http\File;
 class CategoriaServicioSeeder extends Seeder
 {
     public function run()
     {
-        CategoriaServicio::create([
-            'nombre' => 'Turismo Vivencial',
-            'descripcion' => 'Experiencias auténticas donde los visitantes conviven con familias locales y aprenden sobre sus tradiciones.',
-            'imagen' => 'images/turismo_vivencial.jpg',
-            'icono' => 'iconos/turismo_vivencial.png'
 
-            /* id 1 */
-        ]);
+        $fixtures = [
+            [
+                'nombre'    => 'Cultura',
+                'descripcion' => 'Experiencias culturales',
+                'imagen'    => database_path('seeders/fixtures/cultura.jpg'),
+                'icono'     => database_path('seeders/fixtures/cultura.png'),
+            ],
+            [
+                'nombre'    => 'Gastronomía',
+                'descripcion' => 'Sabores del mundo',
+                'imagen'    => database_path('seeders/fixtures/gastronomia.webp'),
+                'icono'     => database_path('seeders/fixtures/gastronomia.png'),
+            ],
+            [
+                'nombre'    => 'experiencias',
+                'descripcion' => 'Experiencias culturales',
+                'imagen'    => database_path('seeders/fixtures/experiencias.jpg'),
+                'icono'     => database_path('seeders/fixtures/experiencias.png'),
+            ],
+            [
+                'nombre'    => 'alojamientoi',
+                'descripcion' => 'mejores alojamientos',
+                'imagen'    => database_path('seeders/fixtures/alojamiento.jpeg'),
+                'icono'     => database_path('seeders/fixtures/alojamiento.png'),
+            ],
+            [
+                'nombre'    => 'Guias',
+                'descripcion' => 'mos mejores del mundo',
+                'imagen'    => database_path('seeders/fixtures/guia.jpg'),
+                'icono'     => database_path('seeders/fixtures/guia.png'),
+            ],
+            // … más categorías …
+        ];
 
-        CategoriaServicio::create([
-            'nombre' => 'Gastronomía Andina',
-            'descripcion' => 'Ofrecemos platos tradicionales como la torreja de quinua, sopa de illaco y t’himpo de pejerrey.',
-            'imagen' => 'images/gastronomia_andina.jpg',
-            'icono' => 'iconos/gastronomia_andina.png'
+        foreach ($fixtures as $f) {
 
-            /* id 2 */
-        ]);
+            $cat = CategoriaServicio::create([
+                'nombre'      => $f['nombre'],
+                'descripcion' => $f['descripcion'],
+            ]);
 
-        CategoriaServicio::create([
-            'nombre' => 'Ecoturismo y Senderismo',
-            'descripcion' => 'Rutas naturales en la península de Capachica, con miradores panorámicos y observación de flora y fauna.',
-            'imagen' => 'images/ecoturismo_senderismo.jpg',
-            'icono' => 'iconos/ecoturismo_senderismo.png'
+            // 2) Almacena en storage/app/public/categorias:
+            $imagenPath = Storage::disk('public')->putFile(
+                'categorias',
+                new File($f['imagen'])
+            );
 
-            /* id 3 */
-        ]);
+            // 3) Almacena en storage/app/public/icons:
+            $iconoPath = Storage::disk('public')->putFile(
+                'icons',
+                new File($f['icono'])
+            );
 
-        CategoriaServicio::create([
-            'nombre' => 'Pesca Artesanal',
-            'descripcion' => 'Participa en la pesca tradicional en el Lago Titicaca, utilizando métodos ancestrales.',
-            'imagen' => 'images/pesca_artesanal.jpg',
-            'icono' => 'iconos/pesca_artesanal.png'
+            // 4) Crea registros en images
+            $img   = Images::create(['url' => $imagenPath, 'titulo' => $cat->nombre]);
+            $ico   = Images::create(['url' => $iconoPath, 'titulo' => $cat->nombre . ' (Icono)']);
 
-            /* id 4 */
-        ]);
+            // 5) Inserta en la tabla pivote
+            DB::table('imageables')->insert([
+                [
+                    'images_id'      => $img->id,
+                    'imageable_id'   => $cat->categorias_servicios_id,
+                    'imageable_type' => CategoriaServicio::class,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ],
+                [
+                    'images_id'      => $ico->id,
+                    'imageable_id'   => $cat->categorias_servicios_id,
+                    'imageable_type' => CategoriaServicio::class,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ],
+            ]);
+        }
     }
 }
