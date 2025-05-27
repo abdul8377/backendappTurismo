@@ -237,4 +237,27 @@ class EmprendimientoController extends Controller
 
         return response()->json(['data' => $solicitudes]);
     }
+
+    public function estadoSolicitudEmprendedor()
+    {
+        $user = Auth::user();
+
+        // Buscar solicitudes pendientes del usuario
+        $solicitudPendiente = SolicitudEmprendimiento::where('users_id', $user->id)
+            ->where('estado', 'pendiente')
+            ->first();
+
+        // Buscar si el usuario tiene emprendimiento activo con rol propietario o colaborador
+        $tieneEmprendimientoActivo = $user->emprendimientos()
+            ->wherePivot('rol_emprendimiento', 'propietario') // o el rol que consideres
+            ->where('estado', 'activo')
+            ->exists();
+
+        return response()->json([
+            'tieneSolicitudPendiente' => $solicitudPendiente !== null,
+            'tieneEmprendimientoActivo' => $tieneEmprendimientoActivo,
+            'estadoSolicitud' => $solicitudPendiente ? $solicitudPendiente->estado : null,
+        ]);
+    }
+
 }

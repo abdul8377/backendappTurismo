@@ -33,8 +33,9 @@ Route::prefix('auth')->group(function () {
 | Estas rutas son solo para obtener información pública o listados.
 | No modifican datos, por eso no requieren token.
 */
-Route::get('/emprendimientos', [EmprendimientoController::class, 'index']);
-Route::get('/emprendimientos/{id}', [EmprendimientoController::class, 'show']); // Si tienes este método
+// Nota: Se quitaron las rutas a métodos no implementados en EmprendimientoController
+// Route::get('/emprendimientos', [EmprendimientoController::class, 'index']);
+// Route::get('/emprendimientos/{id}', [EmprendimientoController::class, 'show']);
 Route::get('users', [UserController::class, 'index']);
 Route::get('users/{id}', [UserController::class, 'show']);
 
@@ -69,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/emprendimientos/{id}/solicitudes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
     Route::post('/solicitudes/{id}/responder', [EmprendimientoController::class, 'responderSolicitud']);
     Route::get('/solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
+    Route::get('/emprendimientos/estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
 
     // Usuarios: activar/desactivar y cambiar contraseña
     Route::patch('users/{id}/active', [UserController::class, 'toggleActive']);
