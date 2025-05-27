@@ -20,12 +20,10 @@ class ZonaTuristica extends Model
         'estado',
     ];
 
-    // Para exponer automáticamente la URL de la imagen
+
     protected $appends = ['imagen_url'];
 
-    /**
-     * Relación many-to-many polimórfica vía tabla `imageables`
-     */
+
     public function images(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -43,18 +41,14 @@ class ZonaTuristica extends Model
      */
     public function getImagenUrlAttribute(): ?string
     {
-        // Siempre obtenemos la colección para usar Collection::first()
         $img = $this->images()->get()->first();
         if (! $img) {
             return null;
         }
-        // Si url ya es absoluta, devuélvela
         $url = $img->url;
         if (Str::startsWith($url, ['http://','https://'])) {
             return $url;
-
         }
-        // En otro caso, construye usando el enlace storage
         return URL::to("storage/{$url}");
 
     }

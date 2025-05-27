@@ -44,6 +44,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MunicipalidadDescripcionSeeder::class);
         // Zonas turisticas
         $this->call(ZonasTuristicasSeeder::class);
+        $this->call(ProductoSeeder::class);
     }
 }
 

@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+
 use App\Http\Controllers\Api\CategoriaServicioApiController;
+use App\Http\Controllers\Api\CategoryProductsApiController;
 use App\Http\Controllers\Api\EmprendimientoController;
-use App\Http\Controllers\Api\ImageableController;
+use App\Http\Controllers\Api\ProductoApiController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ZonaTuristicaApiController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
@@ -48,6 +50,10 @@ Route::get('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'show']
 
 Route::get('/categorias-servicios', [CategoriaServicioApiController::class, 'index']);
 Route::get('/categorias-servicios/{id}', [CategoriaServicioApiController::class, 'show']);
+
+
+Route::apiResource('productos', ProductoApiController::class);
+Route::apiResource('categorias-productos', CategoryProductsApiController::class);
 
 /*
 |--------------------------------------------------------------------------

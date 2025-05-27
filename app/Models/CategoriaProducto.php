@@ -7,20 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class CategoriaProducto extends Model
 {
+
+
     use HasFactory;
 
-    // Nombre de la tabla
     protected $table = 'categorias_productos';
+    protected $primaryKey = 'categorias_productos_id';
+    public $timestamps = false;
 
-    // Campos que pueden ser asignados en masa
-
-       // Especificar la clave primaria si no es 'id'
-    protected $primaryKey = 'categorias_productos_id'; // Aquí especificas la clave primaria correcta
-
-    protected $fillable = ['nombre', 'descripcion'];
-
-    // Desactivar las marcas de tiempo si no las necesitas
-    public $timestamps = true;
+    protected $fillable = [
+        'nombre',
+        'descripcion',
+    ];
 
     // Relación con los productos
     public function productos()

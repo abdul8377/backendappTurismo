@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class Producto extends Model
 {
@@ -12,20 +15,44 @@ class Producto extends Model
 
     protected $fillable = [
         'emprendimientos_id',
+        'categorias_productos_id',
         'nombre',
         'descripcion',
         'precio',
-        'unidad',
-        'categorias_productos_id', // Cambié de 'categorias_id' a 'categorias_productos_id'
         'stock',
-        'capacidad_total'
+        'capacidad_total',
+        'estado',
+        'imagen',
     ];
+    protected $appends = ['imagen_url'];
 
-    // Relaciones
-    public function emprendimiento()
+    // Relación polimórfica con iamgenes
+    public function images(): BelongsToMany
     {
-        return $this->belongsTo(Emprendimiento::class, 'emprendimientos_id', 'emprendimientos_id');
+        return $this->belongsToMany(
+            Images::class,       // Modelo destino
+            'imageables',        // Nombre de la tabla pivote
+            'imageable_id',      // FK en pivote que apunta a categorias_servicios.categorias_servicios_id
+            'images_id'          // FK en pivote que apunta a images.id
+        )
+        ->wherePivot('imageable_type', self::class)  // Sólo las filas cuyo imageable_type coincida
+        ->withTimestamps();                          // Para usar created_at / updated_at en pivote
     }
+
+    public function getImagenUrlAttribute(): ?string
+    {
+        $img = $this->images()->get()->first();
+        if (! $img) {
+            return null;
+        }
+        $url = $img->url;
+        if (Str::startsWith($url, ['http://','https://'])) {
+            return $url;
+        }
+        return URL::to("storage/{$url}");
+
+    }
+
 
     public function categoria()
     {
