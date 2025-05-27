@@ -239,25 +239,36 @@ class EmprendimientoController extends Controller
     }
 
     public function estadoSolicitudEmprendedor()
-    {
-        $user = Auth::user();
+{
+    /** @var \App\Models\User|null $user */
+    $user = Auth::user();
 
-        // Buscar solicitudes pendientes del usuario
-        $solicitudPendiente = SolicitudEmprendimiento::where('users_id', $user->id)
-            ->where('estado', 'pendiente')
-            ->first();
+    if (!$user) {
+        return response()->json([
+            'error' => 'Usuario no autenticado.'
+        ], 401);
+    }
 
-        // Buscar si el usuario tiene emprendimiento activo con rol propietario o colaborador
+    // Buscar solicitudes pendientes del usuario
+    $solicitudPendiente = SolicitudEmprendimiento::where('users_id', $user->id)
+        ->where('estado', 'pendiente')
+        ->first();
+
+    // Verificar si existe la relación 'emprendimientos' y que el usuario tenga emprendimientos activos con rol propietario o colaborador
+    $tieneEmprendimientoActivo = false;
+    if (method_exists($user, 'emprendimientos')) {
         $tieneEmprendimientoActivo = $user->emprendimientos()
-            ->wherePivot('rol_emprendimiento', 'propietario') // o el rol que consideres
+            ->wherePivotIn('rol_emprendimiento', ['propietario', 'colaborador']) // roles que quieres considerar
             ->where('estado', 'activo')
             ->exists();
-
-        return response()->json([
-            'tieneSolicitudPendiente' => $solicitudPendiente !== null,
-            'tieneEmprendimientoActivo' => $tieneEmprendimientoActivo,
-            'estadoSolicitud' => $solicitudPendiente ? $solicitudPendiente->estado : null,
-        ]);
     }
+
+    return response()->json([
+        'tieneSolicitudPendiente' => $solicitudPendiente !== null,
+        'tieneEmprendimientoActivo' => $tieneEmprendimientoActivo,
+        'estadoSolicitud' => $solicitudPendiente ? $solicitudPendiente->estado : null,
+    ]);
+}
+
 
 }

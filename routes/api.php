@@ -49,29 +49,6 @@ Route::get('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'show']
 Route::get('/categorias-servicios', [CategoriaServicioApiController::class, 'index']);
 Route::get('/categorias-servicios/{id}', [CategoriaServicioApiController::class, 'show']);
 
-/*
-|--------------------------------------------------------------------------
-| Rutas protegidas con middleware auth:sanctum
-|--------------------------------------------------------------------------
-| Estas rutas requieren autenticación vía token Sanctum.
-| Incluyen creación, actualización, eliminación y operaciones sensibles.
-*/
-Route::middleware('auth:sanctum')->group(function () {
-    // Logout y obtener datos del usuario autenticado
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-
-    // Emprendimientos: creación, activación, solicitudes y respuestas
-    Route::post('/emprendimientos', [EmprendimientoController::class, 'store']);
-    Route::post('/emprendimientos/{id}/activar', [EmprendimientoController::class, 'activarEmprendimiento']);
-    Route::post('/emprendimientos/solicitud', [EmprendimientoController::class, 'enviarSolicitud']);
-    Route::get('/emprendimientos/{id}/solicitudes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
-    Route::post('/solicitudes/{id}/responder', [EmprendimientoController::class, 'responderSolicitud']);
-    Route::get('/solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
-    Route::get('/emprendimientos/estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
-
     // Usuarios: activar/desactivar y cambiar contraseña
     Route::patch('users/{id}/active', [UserController::class, 'toggleActive']);
     Route::patch('users/{id}/password', [UserController::class, 'changePassword']);
@@ -97,6 +74,31 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('tipos-de-negocio', [TipoDeNegocioController::class, 'store']);
     Route::put('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'update']);
     Route::delete('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
+
+/*
+|--------------------------------------------------------------------------
+| Rutas protegidas con middleware auth:sanctum
+|--------------------------------------------------------------------------
+| Estas rutas requieren autenticación vía token Sanctum.
+| Incluyen creación, actualización, eliminación y operaciones sensibles.
+*/
+Route::middleware('auth:sanctum')->group(function () {
+    // Logout y obtener datos del usuario autenticado
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // Emprendimientos: creación, activación, solicitudes y respuestas
+    Route::post('/emprendimientos', [EmprendimientoController::class, 'store']);
+    Route::post('/emprendimientos/{id}/activar', [EmprendimientoController::class, 'activarEmprendimiento']);
+    Route::post('/emprendimientos/solicitud', [EmprendimientoController::class, 'enviarSolicitud']);
+    Route::get('/emprendimientos/{id}/solicitudes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
+    Route::post('/solicitudes/{id}/responder', [EmprendimientoController::class, 'responderSolicitud']);
+    Route::get('/solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
+    Route::get('/emprendimientos/estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
+
+
 });
 
 /*
