@@ -62,7 +62,7 @@ class EmprendedorSeeder extends Seeder
         // Relacionar emprendimiento con el usuario (Emprendedor)
         $user1->emprendimientos()->attach($emprendimiento1->emprendimientos_id);
 
-        // Crear productos para el restaurante (categoría alimentos típicos)
+        /*// Crear productos para el restaurante (categoría alimentos típicos)
         $categoriaProducto = CategoriaProducto::find(4); // Categoría de alimentos típicos
 
         Producto::create([
@@ -93,7 +93,7 @@ class EmprendedorSeeder extends Seeder
             'unidad' => 'Unidad',
             'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
             'stock' => 30,
-        ]);
+        ]);*/
 
         // 2. Crear el usuario para la Tienda de Artesanías (Tipo de Negocio 2)
         $user2 = User::create([
@@ -136,7 +136,7 @@ class EmprendedorSeeder extends Seeder
         $user2->emprendimientos()->attach($emprendimiento2->emprendimientos_id);
 
         // Crear productos para la tienda de artesanías (categoría artesanías textiles y cerámica)
-        $categoriaProducto = CategoriaProducto::find(1); // Categoría de Artesanías Textiles
+        /*$categoriaProducto = CategoriaProducto::find(1); // Categoría de Artesanías Textiles
 
         Producto::create([
             'emprendimientos_id' => $emprendimiento2->emprendimientos_id,
@@ -169,7 +169,7 @@ class EmprendedorSeeder extends Seeder
             'unidad' => 'Unidad',
             'categorias_productos_id' => $categoriaProducto->categorias_productos_id,
             'stock' => 60,
-        ]);
+        ]);*/
 
         // 3. Crear el usuario para la Agencia de Viajes (Tipo de Negocio 3)
         $user3 = User::create([

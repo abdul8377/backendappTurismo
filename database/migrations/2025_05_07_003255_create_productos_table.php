@@ -17,11 +17,10 @@ return new class extends Migration
             $table->string('nombre', 150);
             $table->text('descripcion')->nullable();
             $table->decimal('precio', 10, 2);
-            $table->string('unidad', 50)->nullable();
             $table->unsignedBigInteger('categorias_productos_id');
             $table->integer('stock')->default(0);
-            $table->integer('capacidad_total')->nullable();
-
+            $table->string('imagen', 255)->nullable();
+            $table->enum('estado', ['activo', 'inactivo'])->default('activo');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 

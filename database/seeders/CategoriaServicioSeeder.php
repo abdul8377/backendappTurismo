@@ -14,12 +14,7 @@ class CategoriaServicioSeeder extends Seeder
     {
 
         $fixtures = [
-            [
-                'nombre'    => 'Cultura',
-                'descripcion' => 'Experiencias culturales',
-                'imagen'    => database_path('seeders/fixtures/cultura.jpg'),
-                'icono'     => database_path('seeders/fixtures/cultura.png'),
-            ],
+
             [
                 'nombre'    => 'Gastronomía',
                 'descripcion' => 'Sabores del mundo',
