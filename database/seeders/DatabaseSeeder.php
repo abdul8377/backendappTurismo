@@ -39,12 +39,16 @@ class DatabaseSeeder extends Seeder
         // $this->call(PerfilEmprendedorSeeder::class);
         $this->call(EmprendedorSeeder::class);
 
+        $this->call(EmprendimientoSeeder::class);
+
 
         // Municipalidad (solo un registro)
         $this->call(MunicipalidadDescripcionSeeder::class);
         // Zonas turisticas
         $this->call(ZonasTuristicasSeeder::class);
         $this->call(ProductoSeeder::class);
+
+        $this->call(ServicioSeeder::class);
     }
 }
 

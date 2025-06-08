@@ -18,14 +18,7 @@ return new class extends Migration
             $table->text('descripcion')->nullable();
             $table->decimal('precio', 10, 2);
             $table->integer('capacidad_maxima');
-            $table->integer('duracion_servicio')->nullable();
-            $table->string('imagen_destacada', 255)->nullable();
-            $table->unsignedBigInteger('categorias_servicios_id');
-
-            $table->foreign('categorias_servicios_id')
-                ->references('categorias_servicios_id')
-                ->on('categorias_servicios')
-                ->onDelete('cascade');
+            $table->string('duracion_servicio')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 

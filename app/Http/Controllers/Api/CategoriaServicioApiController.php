@@ -14,8 +14,7 @@ class CategoriaServicioApiController extends Controller
     public function index()
     {
         try {
-            $categorias = CategoriaServicio::with(['images', 'servicios'])
-                ->withCount('servicios')
+            $categorias = CategoriaServicio::with(['images'])
                 ->get();
             return response()->json($categorias, 200);
         } catch (\Exception $e) {
@@ -27,13 +26,10 @@ class CategoriaServicioApiController extends Controller
     }
 
 
-    // Mostrar los detalles de una categoría de servicio
     public function show($id)
     {
         try {
-            $categoria = CategoriaServicio::with('servicios')
-                ->findOrFail($id)
-                ->load('images');
+            $categoria = CategoriaServicio::with('images')->findOrFail($id);
             return response()->json($categoria, 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['error' => 'Categoría de servicio no encontrada'], 404);
@@ -42,6 +38,7 @@ class CategoriaServicioApiController extends Controller
         }
     }
 
+    // Crear una nueva categoría de servicio
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -56,7 +53,6 @@ class CategoriaServicioApiController extends Controller
             'nombre'      => $validated['nombre'],
             'descripcion' => $validated['descripcion'] ?? null,
         ];
-
 
         if ($request->hasFile('imagen')) {
             $path = $request->file('imagen')->store('categorias', 'public');
@@ -85,6 +81,7 @@ class CategoriaServicioApiController extends Controller
                 'updated_at'     => now(),
             ]);
         }
+
         if (isset($data['icono'])) {
             $icono = Images::create([
                 'url'    => $data['icono'],
@@ -99,7 +96,7 @@ class CategoriaServicioApiController extends Controller
             ]);
         }
 
-        $categoria->load(['images', 'servicios']);
+        $categoria->load(['images']);
         return response()->json($categoria, 201);
     }
 

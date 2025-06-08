@@ -86,8 +86,8 @@ class CategoriaServicio extends Model
 
 
     // Relación con servicios
-    public function servicios()
-    {
-        return $this->hasMany(Servicio::class, 'categorias_servicios_id');
-    }
+    // public function servicios()
+    // {
+    //     return $this->hasMany(Servicio::class, 'categorias_servicios_id');
+    // }
 }

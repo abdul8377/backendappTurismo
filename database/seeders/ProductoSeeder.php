@@ -18,7 +18,7 @@ class ProductoSeeder extends Seeder
     {
         $fixtures = [
             [
-                'emprendimientos_id'       => 1,
+                'emprendimientos_id'       => 5,
                 'categorias_productos_id'  => 1,
                 'nombre'                   => 'Cubo Artesanal',
                 'descripcion'              => 'Hecho a mano con madera local',
@@ -28,7 +28,7 @@ class ProductoSeeder extends Seeder
                 'imagen'                   => database_path('seeders/fixtures/productos/producto1.jpeg'),
             ],
             [
-                'emprendimientos_id'       => 1,
+                'emprendimientos_id'       => 6,
                 'categorias_productos_id'  => 2,
                 'nombre'                   => 'Pulsera de Alpaca',
                 'descripcion'              => 'Diseño tradicional andino',
@@ -38,7 +38,7 @@ class ProductoSeeder extends Seeder
                 'imagen'                   => database_path('seeders/fixtures/productos/producto2.webp'),
             ],
             [
-                'emprendimientos_id'       => 1,
+                'emprendimientos_id'       => 5,
                 'categorias_productos_id'  => 3,
                 'nombre'                   => 'preubas 1',
                 'descripcion'              => 'Diseño tradicional andino',
@@ -48,7 +48,7 @@ class ProductoSeeder extends Seeder
                 'imagen'                   => database_path('seeders/fixtures/productos/producto3.jpg'),
             ],
             [
-                'emprendimientos_id'       => 1,
+                'emprendimientos_id'       => 6,
                 'categorias_productos_id'  => 4,
                 'nombre'                   => 'Pulsera',
                 'descripcion'              => 'Diseño tradicional andino',
@@ -58,7 +58,7 @@ class ProductoSeeder extends Seeder
                 'imagen'                   => database_path('seeders/fixtures/productos/producto4.jpeg'),
             ],
             [
-                'emprendimientos_id'       => 1,
+                'emprendimientos_id'       => 5,
                 'categorias_productos_id'  => 5,
                 'nombre'                   => 'Alpaca',
                 'descripcion'              => 'Diseño tradicional andino',
@@ -68,7 +68,7 @@ class ProductoSeeder extends Seeder
                 'imagen'                   => database_path('seeders/fixtures/productos/producto5.jpeg'),
             ],
             [
-                'emprendimientos_id'       => 1,
+                'emprendimientos_id'       => 6,
                 'categorias_productos_id'  => 2,
                 'nombre'                   => 'pruebas asd',
                 'descripcion'              => 'Diseño tradicional andino',

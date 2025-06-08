@@ -34,31 +34,31 @@ class ProductoApiController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error'=>$validator->errors()], 422);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         // 1) Creamos el producto
         $prod = Producto::create([
-        'emprendimientos_id'      => $request->emprendimientos_id,
-        'categorias_productos_id' => $request->categorias_productos_id,
-        'nombre'                  => $request->nombre,          // <-- usa 'nombre'
-        'descripcion'             => $request->descripcion,
-        'precio'                  => $request->precio,
-        'stock'                   => $request->stock,
-        // NO incluyo 'imagen' aún
-    ]);
+            'emprendimientos_id'      => $request->emprendimientos_id,
+            'categorias_productos_id' => $request->categorias_productos_id,
+            'nombre'                  => $request->nombre,          // <-- usa 'nombre'
+            'descripcion'             => $request->descripcion,
+            'precio'                  => $request->precio,
+            'stock'                   => $request->stock,
+            // NO incluyo 'imagen' aún
+        ]);
 
         // 2) Si envían imagen, la almacenamos y relacionamos
         if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('productos','public');
+            $path = $request->file('imagen')->store('productos', 'public');
 
             $prod->imagen = $path;
             $prod->save();
 
             $img = Images::create([
-            'url'    => $path,
-            'titulo' => $prod->nombre,   // <-- aquí debes usar $prod->nombre
-        ]);
+                'url'    => $path,
+                'titulo' => $prod->nombre,   // <-- aquí debes usar $prod->nombre
+            ]);
 
             DB::table('imageables')->insert([
                 'images_id'      => $img->id,
@@ -98,16 +98,16 @@ class ProductoApiController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error'=>$validator->errors()], 422);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $prod = Producto::findOrFail($id);
-        $prod->update($request->only('nombre','descripcion','precio','stock'));
+        $prod->update($request->only('nombre', 'descripcion', 'precio', 'stock'));
 
         if ($request->hasFile('imagen')) {
             // (Opcional) podrías eliminar la imagen anterior aquí…
 
-            $path = $request->file('imagen')->store('productos','public');
+            $path = $request->file('imagen')->store('productos', 'public');
             $img = Images::create([
                 'url'    => $path,
                 'titulo' => $prod->nombre_producto,
@@ -135,6 +135,6 @@ class ProductoApiController extends Controller
     {
         $prod = Producto::findOrFail($id);
         $prod->delete();
-        return response()->json(['message'=>'Producto eliminado correctamente'], Response::HTTP_OK);
+        return response()->json(['message' => 'Producto eliminado correctamente'], Response::HTTP_OK);
     }
 }

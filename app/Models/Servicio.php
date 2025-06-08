@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class Servicio extends Model
 {
@@ -19,10 +22,49 @@ class Servicio extends Model
         'precio',
         'capacidad_maxima',
         'duracion_servicio',
-        'imagen_destacada',
-        'categorias_servicios_id', // Relación con categoría de servicio
+
 
     ];
+
+    protected $appends = ['imagenes_url','imagen_url'];
+
+    public function images(): MorphToMany
+    {
+        return $this->morphToMany(
+            Images::class,
+            'imageable',
+            'imageables',
+            'imageable_id',
+            'images_id'
+        )
+            ->withTimestamps();
+    }
+
+
+    public function getImagenesUrlAttribute(): array
+    {
+        return $this->images
+            ->map(function ($img) {
+                $url = $img->url;
+                if (Str::startsWith($url, ['http://', 'https://'])) {
+                    return $url;
+                }
+                return URL::to('storage/' . $url);
+            })
+            ->toArray();
+    }
+    public function getImagenUrlAttribute(): ?string
+    {
+        $img = $this->images()->first();
+        if (! $img) {
+            return null;
+        }
+        $url = $img->url;
+        if (Str::startsWith($url, ['http://', 'https://'])) {
+            return $url;
+        }
+        return URL::to("storage/{$url}");
+    }
 
     /**
      * Relación con el emprendimiento
@@ -31,20 +73,4 @@ class Servicio extends Model
     {
         return $this->belongsTo(Emprendimiento::class, 'emprendimientos_id', 'emprendimientos_id');
     }
-
-    /**
-     * Relación con la categoría de servicio
-     */
-    public function categoriaServicio()
-    {
-        return $this->belongsTo(CategoriaServicio::class, 'categorias_servicios_id', 'categorias_servicios_id');
-    }
-
-    public function categoria()
-{
-    return $this->belongsTo(CategoriaServicio::class, 'categorias_servicios_id');
-}
-
-
-
 }

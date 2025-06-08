@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class Emprendimiento extends Model
@@ -20,8 +23,36 @@ class Emprendimiento extends Model
         'telefono',
         'estado',
         'fecha_registro',
-        'imagen_destacada',
     ];
+
+    protected $appends = ["imagenes_url"];
+
+
+    // Relación polimórfica con iamgenes
+     public function images(): MorphToMany
+    {
+        return $this->morphToMany(
+            Images::class,
+            'imageable',         // Nombre base de la relación (laravel busca imageable_id, imageable_type)
+            'imageables',        // Tabla pivote
+            'imageable_id',      // FK en imageables que apunta a este modelo (emprendimientos_id)
+            'images_id'          // FK en imageables que apunta a images.id
+        )
+        ->withTimestamps();
+    }
+
+    public function getImagenesUrlAttribute(): array
+    {
+        return $this->images
+            ->map(function($img) {
+                // Si el url ya es absoluto no lo cambia, si es relativo lo convierte usando asset()
+                if (Str::startsWith($img->url, ['http://','https://'])) {
+                    return $img->url;
+                }
+                return URL::to('storage/' . $img->url);
+            })
+            ->toArray();
+    }
 
     /**
      * Boot method to generate codigo_unico automatically before creating

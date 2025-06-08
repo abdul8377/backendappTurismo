@@ -4,23 +4,79 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Emprendimiento;
+use App\Models\Images;
 use App\Models\SolicitudEmprendimiento;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class EmprendimientoController extends Controller
 {
+
+    public function index()
+    {
+
+        $list = Emprendimiento::with(['tipoDeNegocio','images'])->get();
+        return response()->json($list, Response::HTTP_OK);
+    }
+
+
+
     // Crear nuevo emprendimiento con estado pendiente + crear solicitud automática rol propietario
     public function store(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'tipo_negocio_id' => 'nullable|exists:tipos_de_negocio,id',
-            'direccion' => 'nullable|string|max:255',
-            'telefono' => 'nullable|string|max:20',
+        $validator = Validator::make($request->all(), [
+            'nombre'          => 'required|string|max:255',
+            'descripcion'     => 'required|string',
+            'tipo_negocio_id' => 'required|integer|exists:tipos_de_negocio,id',
+            'direccion'       => 'required|string|max:255',
+            'telefono'        => 'required|string|max:20',
+            'estado'          => 'in:activo,inactivo,pendiente',
+            'imagenes.*'          => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // 1) Creamos el emprendimiento
+        $data = $validator->validated();
+        unset($data['imagenes']); // porque no pertenece directamente a la tabla
+        $data['fecha_registro'] = now();
+        $empr = Emprendimiento::create($data);
+
+        // 2) Si enviaron archivos en 'imagenes[]', súbelos y asócialos
+        if ($request->hasFile('imagenes')) {
+            foreach ($request->file('imagenes') as $file) {
+                // 2.1) Guardar en disco en carpeta "emprendimientos/{id}"
+                $path = $file->store("emprendimientos/{$empr->getKey()}", 'public');
+
+                // 2.2) Crear registro en tabla "images"
+                $img = Images::create([
+                    'url'    => $path,
+                    'titulo' => $empr->nombre . ' (Imagen)',
+                ]);
+
+                // 2.3) Insertar en pivot "imageables"
+                DB::table('imageables')->insert([
+                    'images_id'      => $img->id,
+                    'imageable_id'   => $empr->getKey(),
+                    'imageable_type' => Emprendimiento::class,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
+        }
+
+        // Recargamos la relación para devolverla
+        $empr->load(['tipoDeNegocio','images']);
+        return response()->json([
+            'message'       => 'Emprendimiento creado correctamente',
+            'emprendimiento'=> $empr
+        ], Response::HTTP_CREATED);
+
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -51,6 +107,82 @@ class EmprendimientoController extends Controller
             'data' => $emprendimiento,
         ], 201);
     }
+
+    public function show($id)
+    {
+        $empr = Emprendimiento::with(['tipoDeNegocio','images'])->findOrFail($id);
+        return response()->json($empr, Response::HTTP_OK);
+    }
+
+
+
+    public function update(Request $request, $id)
+    {
+        $empr = Emprendimiento::findOrFail($id);
+
+        $v = Validator::make($request->all(), [
+            'nombre'           => 'sometimes|required|string|max:255',
+            'descripcion'      => 'nullable|string',
+            'tipo_negocio_id'  => 'nullable|integer|exists:tipos_de_negocio,id',
+            'direccion'        => 'nullable|string|max:255',
+            'telefono'         => 'nullable|string|max:20',
+            'estado'           => 'in:activo,inactivo,pendiente',
+            'imagenes.*'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        if ($v->fails()) {
+            return response()->json(['errors' => $v->errors()], 422);
+        }
+
+        // 1) Actualizar los campos “normales”
+        $data = $v->validated();
+        unset($data['imagenes']);
+        $empr->update($data);
+
+        // 2) Si vienen nuevos archivos en 'imagenes[]', guardarlos y asociarlos
+        if ($request->hasFile('imagenes')) {
+            foreach ($request->file('imagenes') as $file) {
+                $path = $file->store("emprendimientos/{$empr->getKey()}", 'public');
+                $img  = Images::create([
+                    'url'    => $path,
+                    'titulo' => $empr->nombre . ' (Imagen)',
+                ]);
+                DB::table('imageables')->insert([
+                    'images_id'      => $img->id,
+                    'imageable_id'   => $empr->getKey(),
+                    'imageable_type' => Emprendimiento::class,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
+        }
+
+        // 3) Devolver con relaciones actualizadas
+        $empr->load(['tipoDeNegocio','images']);
+        return response()->json([
+            'message'       => 'Emprendimiento actualizado correctamente',
+            'emprendimiento'=> $empr
+        ], Response::HTTP_OK);
+    }
+
+    public function destroy($id)
+    {
+        $empr = Emprendimiento::findOrFail($id);
+
+        // 1) Borrar archivos físicos y registros en images + imageables
+        foreach ($empr->images as $img) {
+            Storage::disk('public')->delete($img->url);
+            $img->delete(); // cascade eliminará del pivot
+        }
+
+        // 2) Eliminar el emprendimiento
+        $empr->delete();
+
+        return response()->json([
+            'message' => 'Emprendimiento eliminado correctamente'
+        ], Response::HTTP_OK);
+    }
+
 
     // Activar emprendimiento pendiente y aprobar solicitud propietario automáticamente
     public function activarEmprendimiento($id)

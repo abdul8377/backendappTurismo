@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Reserva extends Model
+class DetalleReserva extends Model
 {
     use HasFactory;
 
@@ -17,7 +17,9 @@ class Reserva extends Model
         'productos_id',
         'servicios_id',
         'cantidad',
-        'hora_reserva'
+        'hora_reserva',
+        'precio_unitario',
+        'descuento_aplicado'
     ];
 
     public function reserva()
@@ -33,9 +35,5 @@ class Reserva extends Model
     public function servicio()
     {
         return $this->belongsTo(Servicio::class, 'servicios_id', 'servicios_id');
-    }
-    public function getTotalAttribute()
-    {
-        return $this->detalles->sum('total');
     }
 }

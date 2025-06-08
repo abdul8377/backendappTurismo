@@ -4,8 +4,11 @@ use App\Http\Controllers\Api\AuthController;
 
 use App\Http\Controllers\Api\CategoriaServicioApiController;
 use App\Http\Controllers\Api\CategoryProductsApiController;
+use App\Http\Controllers\Api\DetalleReservaApiController;
 use App\Http\Controllers\Api\EmprendimientoController;
 use App\Http\Controllers\Api\ProductoApiController;
+use App\Http\Controllers\Api\ReservaApiController;
+use App\Http\Controllers\Api\ServicioApiController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ZonaTuristicaApiController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
@@ -20,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 | Estas rutas permiten el registro, login y recuperación de contraseña.
 | No requieren autenticación porque son para usuarios no logueados.
 */
+
 Route::prefix('auth')->group(function () {
     Route::post('check-email', [AuthController::class, 'checkEmail']);
     Route::post('login', [AuthController::class, 'login']);
@@ -44,6 +48,10 @@ Route::get('users/{id}', [UserController::class, 'show']);
 Route::get('tipos-de-negocio', [TipoDeNegocioController::class, 'index']);
 Route::get('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'show']);
 Route::get('tipos-de-negocio/{id}/emprendimientos', [TipoDeNegocioController::class, 'getEmprendimientosByTipo']);
+Route::post('tipos-de-negocio', [TipoDeNegocioController::class, 'store']);
+Route::put('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'update']);
+Route::delete('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
+
 
 Route::get('/zonas-turisticas', [ZonaTuristicaApiController::class, 'index']);
 Route::get('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'show']);
@@ -54,6 +62,20 @@ Route::get('/categorias-servicios/{id}', [CategoriaServicioApiController::class,
 
 Route::apiResource('productos', ProductoApiController::class);
 Route::apiResource('categorias-productos', CategoryProductsApiController::class);
+
+
+Route::apiResource('emprendimientos', EmprendimientoController::class);
+
+//Route::apiResource('servicios', ServicioApiController::class);
+Route::get('/servicios', [ServicioApiController::class, 'index']);
+Route::get('/servicios/{id}', [ServicioApiController::class, 'show']);
+
+
+
+Route::apiResource('reservas', ReservaApiController::class);
+Route::apiResource('detalle-reservas', DetalleReservaApiController::class);
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -69,14 +91,14 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // Emprendimientos: creación, activación, solicitudes y respuestas
-    Route::post('/emprendimientos', [EmprendimientoController::class, 'store']);
-    Route::post('/emprendimientos/{id}/activar', [EmprendimientoController::class, 'activarEmprendimiento']);
-    Route::post('/emprendimientos/solicitud', [EmprendimientoController::class, 'enviarSolicitud']);
-    Route::get('/emprendimientos/{id}/solicitudes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
-    Route::post('/solicitudes/{id}/responder', [EmprendimientoController::class, 'responderSolicitud']);
-    Route::get('/solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
-    Route::get('/emprendimientos/estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
+    // // Emprendimientos: creación, activación, solicitudes y respuestas
+    // Route::post('/emprendimientos', [EmprendimientoController::class, 'store']);
+    // Route::post('/emprendimientos/{id}/activar', [EmprendimientoController::class, 'activarEmprendimiento']);
+    // Route::post('/emprendimientos/solicitud', [EmprendimientoController::class, 'enviarSolicitud']);
+    // Route::get('/emprendimientos/{id}/solicitudes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
+    // Route::post('/solicitudes/{id}/responder', [EmprendimientoController::class, 'responderSolicitud']);
+    // Route::get('/solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
+    // Route::get('/emprendimientos/estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
 
     // Usuarios: activar/desactivar y cambiar contraseña
     Route::patch('users/{id}/active', [UserController::class, 'toggleActive']);
@@ -86,7 +108,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/emprendimientos-usuarios', [EmprendimientoUsuarioController::class, 'store']);
     Route::put('/emprendimientos-usuarios/{id}', [EmprendimientoUsuarioController::class, 'update']);
     Route::delete('/emprendimientos-usuarios/{id}', [EmprendimientoUsuarioController::class, 'destroy']);
-    Route::get('/emprendimientos-usuarios', [EmprendimientoUsuarioController::class, 'index']);
     Route::get('/emprendimientos-usuarios/{id}', [EmprendimientoUsuarioController::class, 'show']);
 
     // Categorías de servicios: creación, actualización, eliminación
@@ -100,9 +121,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'destroy']);
 
     // Tipos de negocio: creación, actualización, eliminación
-    Route::post('tipos-de-negocio', [TipoDeNegocioController::class, 'store']);
-    Route::put('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'update']);
-    Route::delete('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
+    // Route::post('tipos-de-negocio', [TipoDeNegocioController::class, 'store']);
+    // Route::put('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'update']);
+    // Route::delete('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
 });
 
 /*
@@ -112,3 +133,4 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 // Route::post('/imagenes', [ImageableController::class, 'store']);
 // Route::get('/imagenes/{type}/{id}', [ImageableController::class, 'index']);
+///asdas

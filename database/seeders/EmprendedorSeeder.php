@@ -50,7 +50,7 @@ class EmprendedorSeeder extends Seeder
         ]);
 
         // Crear el emprendimiento 1 (Restaurante)
-        $emprendimiento1 = Emprendimiento::create([
+        /*$emprendimiento1 = Emprendimiento::create([
             'nombre' => 'Restaurante Andino',
             'descripcion' => 'Establecimiento dedicado a la preparación y venta de platos típicos andinos.',
             'tipo_negocio_id' => 1, // Relación con el tipo de negocio Restaurante
@@ -61,8 +61,9 @@ class EmprendedorSeeder extends Seeder
 
         // Relacionar emprendimiento con el usuario (Emprendedor)
         $user1->emprendimientos()->attach($emprendimiento1->emprendimientos_id);
+        */
 
-        /*// Crear productos para el restaurante (categoría alimentos típicos)
+        /* Crear productos para el restaurante (categoría alimentos típicos)
         $categoriaProducto = CategoriaProducto::find(4); // Categoría de alimentos típicos
 
         Producto::create([
@@ -122,6 +123,7 @@ class EmprendedorSeeder extends Seeder
             'codigo' => 'EMPR002',
         ]);
 
+        /*
         // Crear el emprendimiento 2 (Tienda de Artesanías)
         $emprendimiento2 = Emprendimiento::create([
             'nombre' => 'Tienda Artesanal Capachica',
@@ -134,7 +136,7 @@ class EmprendedorSeeder extends Seeder
 
         // Relacionar emprendimiento con el usuario (Emprendedor)
         $user2->emprendimientos()->attach($emprendimiento2->emprendimientos_id);
-
+        */
         // Crear productos para la tienda de artesanías (categoría artesanías textiles y cerámica)
         /*$categoriaProducto = CategoriaProducto::find(1); // Categoría de Artesanías Textiles
 
@@ -197,7 +199,7 @@ class EmprendedorSeeder extends Seeder
             'gmail_confirmado' => true,
             'codigo' => 'EMPR003',
         ]);
-
+        /*
         // Crear el emprendimiento 3 (Agencia de Viajes)
         $emprendimiento3 = Emprendimiento::create([
             'nombre' => 'Turismo Capachica',
@@ -210,10 +212,10 @@ class EmprendedorSeeder extends Seeder
 
         // Relacionar emprendimiento con el usuario (Emprendedor)
         $user3->emprendimientos()->attach($emprendimiento3->emprendimientos_id);
-
+        */
         // Crear servicios para la agencia de viajes (categoría servicios)
         $categoriaServicio = CategoriaServicio::find(1); // Suponiendo que Turismo Vivencial ya existe
-
+        /*
         Servicio::create([
             'emprendimientos_id' => $emprendimiento3->emprendimientos_id,
             'nombre' => 'Tour Cultural por Capachica',
@@ -224,5 +226,6 @@ class EmprendedorSeeder extends Seeder
             'imagen_destacada' => 'images/tour_capachica.jpg',
             'categorias_servicios_id' => $categoriaServicio->categorias_servicios_id,
         ]);
+        */
     }
 }
