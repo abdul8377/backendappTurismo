@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ZonaTuristicaApiController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
 use App\Http\Controllers\Api\TipoDeNegocioController;
+use App\Http\Controllers\Api\FavoritoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -124,6 +125,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::post('tipos-de-negocio', [TipoDeNegocioController::class, 'store']);
     // Route::put('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'update']);
     // Route::delete('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
+
+    Route::get('/favoritos', [FavoritoController::class, 'index']);
+    Route::post('/favoritos', [FavoritoController::class, 'store']);
+    Route::delete('/favoritos/{id}', [FavoritoController::class, 'destroy']);
 });
 
 /*

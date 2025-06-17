@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
             'name' => 'Usuario',
             'last_name' => 'Apellido',
             'user' => 'Usuario',
-            'email' => 'Usuario@gmail.com',
+            'email' => 'usuario@gmail.com',
             'password' => bcrypt('12345678'),
             'country' => 'PE',
             'zip_code' => '052',
