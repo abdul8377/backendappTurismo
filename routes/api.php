@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-
+use App\Http\Controllers\Api\CarritoController;
 use App\Http\Controllers\Api\CategoriaServicioApiController;
 use App\Http\Controllers\Api\CategoryProductsApiController;
 use App\Http\Controllers\Api\DetalleReservaApiController;
@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\ZonaTuristicaApiController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
 use App\Http\Controllers\Api\TipoDeNegocioController;
 use App\Http\Controllers\Api\FavoritoController;
+use App\Http\Controllers\Api\PagoController;
+use App\Http\Controllers\Api\VentaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -63,7 +65,7 @@ Route::get('/categorias-servicios/{id}', [CategoriaServicioApiController::class,
 
 Route::apiResource('productos', ProductoApiController::class);
 Route::apiResource('categorias-productos', CategoryProductsApiController::class);
-
+Route::get('/productos/{id}', [ProductoApiController::class, 'show']);
 
 Route::apiResource('emprendimientos', EmprendimientoController::class);
 
@@ -92,15 +94,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // // Emprendimientos: creación, activación, solicitudes y respuestas
-    // Route::post('/emprendimientos', [EmprendimientoController::class, 'store']);
-    // Route::post('/emprendimientos/{id}/activar', [EmprendimientoController::class, 'activarEmprendimiento']);
-    // Route::post('/emprendimientos/solicitud', [EmprendimientoController::class, 'enviarSolicitud']);
-    // Route::get('/emprendimientos/{id}/solicitudes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
-    // Route::post('/solicitudes/{id}/responder', [EmprendimientoController::class, 'responderSolicitud']);
-    // Route::get('/solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
-    // Route::get('/emprendimientos/estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
-
     // Usuarios: activar/desactivar y cambiar contraseña
     Route::patch('users/{id}/active', [UserController::class, 'toggleActive']);
     Route::patch('users/{id}/password', [UserController::class, 'changePassword']);
@@ -121,16 +114,38 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'update']);
     Route::delete('/zonas-turisticas/{id}', [ZonaTuristicaApiController::class, 'destroy']);
 
-    // Tipos de negocio: creación, actualización, eliminación
-    // Route::post('tipos-de-negocio', [TipoDeNegocioController::class, 'store']);
-    // Route::put('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'update']);
-    // Route::delete('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'destroy']);
-
     Route::get('/favoritos', [FavoritoController::class, 'index']);
     Route::post('/favoritos', [FavoritoController::class, 'store']);
     Route::delete('/favoritos/{id}', [FavoritoController::class, 'destroy']);
+
+    // Ver el carrito
+    Route::get('carrito', [CarritoController::class, 'index']);
+
+    // Agregar un ítem al carrito
+    Route::post('carrito', [CarritoController::class, 'store']);
+
+    // Actualizar un ítem en el carrito
+    Route::put('carrito/{carrito}', [CarritoController::class, 'update']);
+
+    // Eliminar un ítem del carrito
+    Route::delete('carrito/{carrito}', [CarritoController::class, 'destroy']);
+
+
+    // Crea la venta (mueve ítems de carrito → ventas + detalle_ventas)
+    Route::post('ventas', [VentaController::class, 'store']);
+
+    // Procesa el pago y actualiza la venta (con ID de la venta en la URL)
+    Route::post('ventas/{venta}/pagar', [VentaController::class, 'procesarPago']);
+
+    // Listar todas las compras (ventas) realizadas por el usuario autenticado
+    Route::get('compras', [VentaController::class, 'listarCompras']);
+
+
+
+
 });
 
+Route::post('/pagar', [PagoController::class, 'procesarPago']);
 /*
 |--------------------------------------------------------------------------
 | Opcional: rutas para manejo de imágenes (si se activan)
@@ -139,3 +154,14 @@ Route::middleware('auth:sanctum')->group(function () {
 // Route::post('/imagenes', [ImageableController::class, 'store']);
 // Route::get('/imagenes/{type}/{id}', [ImageableController::class, 'index']);
 ///asdas
+use App\Http\Controllers\Api\MetodoPagoController;
+
+Route::prefix('metodos-pago')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [MetodoPagoController::class, 'index']); // Listar todos los métodos de pago
+    Route::post('/', [MetodoPagoController::class, 'store']); // Crear un nuevo método de pago
+    Route::get('{id}', [MetodoPagoController::class, 'show']); // Obtener un método de pago específico
+    Route::put('{id}', [MetodoPagoController::class, 'update']); // Actualizar un método de pago
+    Route::delete('{id}', [MetodoPagoController::class, 'destroy']); // Eliminar un método de pago
+    Route::patch('{id}/suspend', [MetodoPagoController::class, 'suspend']); // Suspender un método de pago
+    Route::patch('{id}/activate', [MetodoPagoController::class, 'activate']); // Activar un método de pago
+});

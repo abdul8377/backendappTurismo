@@ -142,4 +142,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(EmprendimientoUsuario::class, 'users_id');
     }
+
+    /**
+     * Relación uno a muchos con Carrito.
+     */
+
+    public function carrito()
+    {
+        return $this->hasMany(Carrito::class, 'user_id');
+    }
+
 }

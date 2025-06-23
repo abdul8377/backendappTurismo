@@ -51,6 +51,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ServicioSeeder::class);
 
         $this->call(FavoritosTableSeeder::class);
+
+        $this->call(MetodoPagoSeeder::class);
     }
 }
 

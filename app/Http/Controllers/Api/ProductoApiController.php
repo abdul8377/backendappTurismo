@@ -79,11 +79,26 @@ class ProductoApiController extends Controller
     }
 
     // MOSTRAR un producto específico
+// MOSTRAR un producto específico por ID
     public function show($id)
     {
-        $prod = Producto::with('images')->findOrFail($id);
-        return response()->json($prod, Response::HTTP_OK);
+        try {
+            $producto = Producto::with('images')->findOrFail($id);
+
+            return response()->json([
+                'status' => 'success',
+                'producto' => $producto
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Producto no encontrado',
+                'details' => $e->getMessage()
+            ], Response::HTTP_NOT_FOUND);
+        }
     }
+
 
     // ACTUALIZAR producto y opcionalmente cambiar imagen
     public function update(Request $request, $id)
