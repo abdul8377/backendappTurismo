@@ -45,8 +45,7 @@ Route::prefix('auth')->group(function () {
 // Nota: Se quitaron las rutas a métodos no implementados en EmprendimientoController
 // Route::get('/emprendimientos', [EmprendimientoController::class, 'index']);
 // Route::get('/emprendimientos/{id}', [EmprendimientoController::class, 'show']);
-Route::get('users', [UserController::class, 'index']);
-Route::get('users/{id}', [UserController::class, 'show']);
+
 
 Route::get('tipos-de-negocio', [TipoDeNegocioController::class, 'index']);
 Route::get('tipos-de-negocio/{id}', [TipoDeNegocioController::class, 'show']);
@@ -93,6 +92,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    Route::get('users', [UserController::class, 'index']);
+    Route::get('users/{id}', [UserController::class, 'show']);
 
     // Usuarios: activar/desactivar y cambiar contraseña
     Route::patch('users/{id}/active', [UserController::class, 'toggleActive']);
