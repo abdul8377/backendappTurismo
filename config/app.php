@@ -27,6 +27,8 @@ return [
     */
 
     'env' => env('APP_ENV', 'production'),
+    'id_plataforma' => env('APP_PLATAFORMA_ID', 1),
+
 
     /*
     |--------------------------------------------------------------------------

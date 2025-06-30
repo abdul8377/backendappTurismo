@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
             'user' => 'franckcoaq',
             'email' => 'franck@gmail.com',
             'password' => bcrypt('12345678'),
-            'country' => 'PE', // Código ISO del país, por ejemplo PE para Perú
+            'country' => 'PE', // Código ISO del país, por ejemplo PE para Perú user... aqui es
             'zip_code' => '051',
         ]);
         $user->assignRole('Administrador');
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
             'name' => 'Usuario',
             'last_name' => 'Apellido',
             'user' => 'Usuario',
-            'email' => 'Usuario@gmail.com',
+            'email' => 'usuario@gmail.com',
             'password' => bcrypt('12345678'),
             'country' => 'PE',
             'zip_code' => '052',

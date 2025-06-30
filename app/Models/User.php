@@ -49,10 +49,11 @@ class User extends Authenticatable
      * @var array<string,string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        // No se aplica cast para 'user' porque es hash bcrypt con sal
-    ];
+            'email_verified_at' => 'datetime',
+            'password'          => 'hashed',
+            // Sugerencia: si tu tabla tiene campo `is_active`, castealo a boolean
+            'is_active'         => 'boolean',
+        ];
 
     /**
      * Genera un código numérico único de 9 dígitos.
@@ -142,4 +143,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(EmprendimientoUsuario::class, 'users_id');
     }
+
+    /**
+     * Relación uno a muchos con Carrito.
+     */
+
+    public function carrito()
+    {
+        return $this->hasMany(Carrito::class, 'user_id');
+    }
+
 }

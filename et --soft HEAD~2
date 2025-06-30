@@ -1,0 +1,116 @@
+[33mcommit bfc3c5b0c74bc40a257ea4178e6cf65063a3062d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Sun Jun 22 22:24:57 2025 -0500
+
+    Aclaracion
+
+[33mcommit 0cfa17d54da35e24eb0b9da557228227570a630c[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Sun Jun 22 22:23:06 2025 -0500
+
+    Aclaracion
+
+[33mcommit 8b9878dcfa32a51592f4bbd27ffe2cad4e4272c7[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Mon Jun 16 20:07:16 2025 -0500
+
+    Avance
+
+[33mcommit d09503c053ae094654651d6c20cfcc0e61a4d281[m
+Author: abdul8377 <abdulalfonso77@gmail.com>
+Date:   Sun Jun 8 18:26:36 2025 -0500
+
+    seeeders servicios, emprendimientos, controladores servicios
+
+[33mcommit d225167241ed19b3de634f6bfa7d296c5d572fd6[m
+Merge: f88f12ee c4d13dcb
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Tue May 27 09:34:56 2025 -0500
+
+    Resolver conflicto de fusión en routes/api.php
+
+[33mcommit f88f12ee8e5ef9b3a2620535aaf8744a9c8a36ad[m
+Merge: 54ae2ea9 400725f6
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Tue May 27 09:28:00 2025 -0500
+
+    Concluir merge
+
+[33mcommit 54ae2ea9a55385b4a61e6c38bdc4f282c4393f3f[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Tue May 27 09:26:40 2025 -0500
+
+    backend
+
+[33mcommit c4d13dcb127c75919a9feb3d21180f67ed2d9176[m[33m ([m[1;31morigin/cambio1[m[33m)[m
+Author: abdul8377 <abdulalfonso77@gmail.com>
+Date:   Tue May 27 08:03:21 2025 -0500
+
+    productos
+
+[33mcommit 400725f6f56f08b57c83b80a156ce54db362fe0c[m
+Merge: 4e25441f cecd382a
+Author: abdul8377 <abdulalfonso77@gmail.com>
+Date:   Tue May 27 00:48:06 2025 -0500
+
+    Merge branch 'main' of https://github.com/abdul8377/backendappTurismo
+
+[33mcommit 4e25441fa60a68e7cb13582680cf786f3328762b[m
+Author: abdul8377 <abdulalfonso77@gmail.com>
+Date:   Tue May 27 00:44:54 2025 -0500
+
+    commit antes de hacer pull
+
+[33mcommit cecd382a67ffe53ab43b25ae9ae71898a669437d[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Tue May 27 00:19:54 2025 -0500
+
+    emprendimiento
+
+[33mcommit e87aa2091e2bfa3d6b6ce14340f5985cdef3a17c[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Mon May 26 00:31:24 2025 -0500
+
+    backend quiero nuevo controlador
+
+[33mcommit 037142840dd97fdb45b68969ef28277749a705ea[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Sat May 24 18:05:42 2025 -0500
+
+    backend
+
+[33mcommit 81357995edf2ff91dfb4f8c326d66f58d4a574c4[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Sat May 24 17:02:21 2025 -0500
+
+    configuracion de los productos y servicios
+
+[33mcommit 7bfaec066044046839b0e354cb1e80addeefb5ee[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Fri May 23 18:59:49 2025 -0500
+
+    tipo de negocio
+
+[33mcommit c8b4dbf4dc9679ca5d18fbacd6e98588c6e8d7e1[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Thu May 22 22:50:21 2025 -0500
+
+    user
+
+[33mcommit 374463ce530dc33c13471b7fdb54cabba4c5647e[m
+Author: EliasDemo <franckalbertsoncoaquirajusto@gmail.com>
+Date:   Thu May 22 16:09:39 2025 -0500
+
+    Logaut y base local
+
+[33mcommit 53636c3a92f0ee8432879b1c148768f2829851e3[m
+Author: abdul8377 <abdulalfonso77@gmail.com>
+Date:   Thu May 22 09:40:50 2025 -0500
+
+    first commit
+
+[33mcommit 1bed8aee25d9d32d97a2a7a54bbdb6e5186d421e[m
+Author: abdul alfonso <104173085+abdul8377@users.noreply.github.com>
+Date:   Thu May 22 09:26:46 2025 -0500
+
+    Initial commit

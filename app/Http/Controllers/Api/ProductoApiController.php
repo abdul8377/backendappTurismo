@@ -54,7 +54,7 @@ class ProductoApiController extends Controller
         'stock'                   => 'required|integer|min:0',
         'estado'                  => 'nullable|in:activo,inactivo',
         'imagenes.*'              => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-        
+
     ]);
 
     if ($validator->fails()) {
@@ -107,8 +107,21 @@ class ProductoApiController extends Controller
 
     public function show($id)
     {
-        $prod = Producto::with('images')->findOrFail($id);
-        return response()->json($prod, Response::HTTP_OK);
+        try {
+            $producto = Producto::with('images')->findOrFail($id);
+
+            return response()->json([
+                'status' => 'success',
+                'producto' => $producto
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Producto no encontrado',
+                'details' => $e->getMessage()
+            ], Response::HTTP_NOT_FOUND);
+        }
     }
 
 

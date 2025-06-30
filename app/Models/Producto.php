@@ -66,6 +66,11 @@ class Producto extends Model
         return URL::to("storage/{$url}");
     }
 
+    // Producto.php  (añade la relación que faltaba)
+    public function emprendimiento()
+    {
+        return $this->belongsTo(Emprendimiento::class, 'emprendimientos_id', 'emprendimientos_id');
+    }
 
     public function categoria()
     {
