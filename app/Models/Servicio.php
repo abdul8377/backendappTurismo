@@ -22,8 +22,6 @@ class Servicio extends Model
         'precio',
         'capacidad_maxima',
         'duracion_servicio',
-
-
     ];
 
     protected $appends = ['imagenes_url','imagen_url'];

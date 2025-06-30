@@ -5,6 +5,7 @@ use App\Http\Controllers\EmprendedorController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
 use App\Http\Controllers\Municipalidad\MunicipalidadDescripcionController;
 use App\Http\Controllers\Municipalidad\SliderController;
+use App\Http\Controllers\PagoController;
 use App\Http\Controllers\ProductoServicio\CategoriaProductoController;
 use App\Http\Controllers\ProductoServicio\ServicioController;
 use App\Http\Controllers\TipoDeNegocioController;
@@ -25,6 +26,11 @@ Route::get('/password/reset', function (Request $request) {
     $token = $request->token;
     return view('auth.passwords.reset', compact('token'));
 })->name('password.reset');
+
+
+
+Route::get('pago', [PagoController::class, 'mostrarFormulario'])->name('pago.formulario');
+Route::post('procesar-pago', [PagoController::class, 'procesarPago'])->name('pago.procesar');
 
 // Ruta al dashboard (requiere autenticación y verificación)
 Route::view('dashboard', 'dashboard')

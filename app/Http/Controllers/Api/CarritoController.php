@@ -17,13 +17,35 @@ class CarritoController extends Controller
     {
         $user = $request->user();
 
-        // eager-load relaciones para mostrar detalles si se desea
         $items = Carrito::with(['producto', 'servicio'])
             ->where('user_id', $user->id)
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $stock_disponible = null;
+
+                if ($item->productos_id) {
+                    $stock_disponible = $item->producto->stock; // Para productos
+                } elseif ($item->servicios_id) {
+                    $stock_disponible = $item->servicio->capacidad_maxima; // Para servicios
+                }
+
+                return [
+                    'carrito_id' => $item->carrito_id,
+                    'user_id' => $item->user_id,
+                    'productos_id' => $item->productos_id,
+                    'servicios_id' => $item->servicios_id,
+                    'cantidad' => $item->cantidad,
+                    'precio_unitario' => $item->precio_unitario,
+                    'subtotal' => $item->subtotal,
+                    'total_carrito' => $item->total_carrito,
+                    'estado' => $item->estado,
+                    'stock_disponible' => $stock_disponible,
+                ];
+            });
 
         return response()->json($items);
     }
+
 
     /**
      * 2. Agregar un nuevo ítem al carrito.

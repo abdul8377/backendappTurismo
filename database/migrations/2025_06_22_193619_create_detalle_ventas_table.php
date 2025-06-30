@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('detalle_ventas', function (Blueprint $table) {
             $table->bigIncrements('detalle_venta_id');
             $table->unsignedBigInteger('venta_id');
+            $table->unsignedBigInteger('emprendimientos_id')->nullable(); // ← Campo nuevo añadido aquí
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('productos_id')->nullable();
             $table->unsignedBigInteger('servicios_id')->nullable();
@@ -26,6 +27,9 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('productos_id')->references('productos_id')->on('productos')->onDelete('set null');
             $table->foreign('servicios_id')->references('servicios_id')->on('servicios')->onDelete('set null');
+
+            // Relación nueva
+            $table->foreign('emprendimientos_id')->references('emprendimientos_id')->on('emprendimientos')->onDelete('set null');
         });
     }
 
