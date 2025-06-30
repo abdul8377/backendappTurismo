@@ -9,132 +9,187 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductoApiController extends Controller
 {
-    // LISTAR todos los productos con su imagen
-    public function index()
-    {
+    public function index(Request $request)
+{
+
+    $user = $request->user();
+
+    if ($user && $user->hasRole('Emprendedor')) {
+        $ids = DB::table('emprendimiento_usuarios')
+            ->where('users_id', $user->id)
+            ->pluck('emprendimientos_id');
+
+        $productos = Producto::with('images')
+            ->whereIn('emprendimientos_id', $ids)
+            ->get();
+
+        return response()->json($productos, Response::HTTP_OK);
+    }
+
+
+    if ($user && $user->hasRole('Administrador')) {
         $productos = Producto::with('images')->get();
         return response()->json($productos, Response::HTTP_OK);
     }
 
-    // CREAR un producto y subir su imagen
+    $productos = Producto::with('images')
+        ->where('estado', 'activo')
+        ->get();
+
+    return response()->json($productos, Response::HTTP_OK);
+    }
+
     public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'emprendimientos_id'      => 'required|integer|exists:emprendimientos,emprendimientos_id',
-            'categorias_productos_id'    => 'required|integer|exists:categorias_productos,categorias_productos_id',
-            'nombre' => 'required|string|max:150',
-            'descripcion'     => 'nullable|string',
-            'precio'          => 'required|numeric|min:0',
-            'stock'           => 'required|integer|min:0',
-            'imagen'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'estado'          => 'nullable|in:activo,inactivo',
-        ]);
+{
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
+    $validator = Validator::make($request->all(), [
+        'categorias_productos_id' => 'required|integer|exists:categorias_productos,categorias_productos_id',
+        'nombre'                  => 'required|string|max:150',
+        'descripcion'             => 'nullable|string',
+        'precio'                  => 'required|numeric|min:0',
+        'stock'                   => 'required|integer|min:0',
+        'estado'                  => 'nullable|in:activo,inactivo',
+        'imagenes.*'              => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+        
+    ]);
 
-        // 1) Creamos el producto
-        $prod = Producto::create([
-            'emprendimientos_id'      => $request->emprendimientos_id,
-            'categorias_productos_id' => $request->categorias_productos_id,
-            'nombre'                  => $request->nombre,          // <-- usa 'nombre'
-            'descripcion'             => $request->descripcion,
-            'precio'                  => $request->precio,
-            'stock'                   => $request->stock,
-            // NO incluyo 'imagen' aún
-        ]);
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
 
-        // 2) Si envían imagen, la almacenamos y relacionamos
-        if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('productos', 'public');
 
-            $prod->imagen = $path;
-            $prod->save();
+    $data = $validator->validated();
+
+
+    $user = $request->user();
+    $emprId = DB::table('emprendimiento_usuarios')
+        ->where('users_id', $user->id)
+        ->value('emprendimientos_id');
+
+    if (! $emprId) {
+        return response()->json(['error' => 'El usuario no tiene un emprendimiento asignado'], 403);
+    }
+    $data['emprendimientos_id'] = $emprId;
+
+    $producto = Producto::create($data);
+
+    if ($request->hasFile('imagenes')) {
+        foreach ($request->file('imagenes') as $file) {
+            $path = $file->store("productos/{$producto->getKey()}", 'public');
 
             $img = Images::create([
                 'url'    => $path,
-                'titulo' => $prod->nombre,   // <-- aquí debes usar $prod->nombre
+                'titulo' => "{$producto->nombre} (Imagen)",
             ]);
 
             DB::table('imageables')->insert([
                 'images_id'      => $img->id,
-                'imageable_id'   => $prod->productos_id,
+                'imageable_id'   => $producto->getKey(),
                 'imageable_type' => Producto::class,
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ]);
         }
-
-        // Recargamos la relación para devolverla
-        $prod->load('images');
-
-        return response()->json([
-            'message'  => 'Producto creado correctamente',
-            'producto' => $prod
-        ], Response::HTTP_CREATED);
     }
 
-    // MOSTRAR un producto específico
+    // 6) Devuelve la respuesta
+    $producto->load(['categoria', 'images']);
+    return response()->json([
+        'message'  => 'producto creado correctamente',
+        'producto' => $producto
+    ], Response::HTTP_CREATED);
+}
+
+
     public function show($id)
     {
         $prod = Producto::with('images')->findOrFail($id);
         return response()->json($prod, Response::HTTP_OK);
     }
 
-    // ACTUALIZAR producto y opcionalmente cambiar imagen
+
     public function update(Request $request, $id)
+
     {
+        $producto = Producto::findOrFail($id);
+
         $validator = Validator::make($request->all(), [
             'nombre' => 'sometimes|required|string|max:150',
             'descripcion'     => 'nullable|string',
             'precio'          => 'sometimes|required|numeric|min:0',
             'stock'           => 'sometimes|required|integer|min:0',
-            'imagen'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'estado'          => 'nullable|in:activo,inactivo',
+            'imagenes.*'              => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'categorias_productos_id' => 'sometimes|required|integer|exists:categorias_productos,categorias_productos_id',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
+         if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $prod = Producto::findOrFail($id);
-        $prod->update($request->only('nombre', 'descripcion', 'precio', 'stock'));
 
-        if ($request->hasFile('imagen')) {
-            // (Opcional) podrías eliminar la imagen anterior aquí…
+        $data = $validator->validated();
+        unset($data['imagenes']);
 
-            $path = $request->file('imagen')->store('productos', 'public');
-            $img = Images::create([
-                'url'    => $path,
-                'titulo' => $prod->nombre_producto,
-            ]);
 
-            DB::table('imageables')->insert([
-                'images_id'      => $img->id,
-                'imageable_id'   => $prod->id_producto,
-                'imageable_type' => Producto::class,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
+
+            // 1) Si vienen imágenes nuevas, primero elimino las antiguas
+        if ($request->hasFile('imagenes')) {
+            // borro archivos y registros de imágenes
+            foreach ($producto->images as $img) {
+                Storage::disk('public')->delete($img->url);
+                $img->delete();
+            }
+            // limpio pivot
+            $producto->images()->detach();
         }
 
-        $prod->load('images');
+        // 2) Actualizo datos básicos
+        $producto->update($data);
 
+        // 3) Re-agrego las nuevas
+        if ($request->hasFile('imagenes')) {
+            foreach ($request->file('imagenes') as $file) {
+                $path = $file->store("productos/{$producto->getKey()}", 'public');
+                $img  = Images::create([
+                    'url'    => $path,
+                    'titulo' => $producto->nombre . ' (Imagen)',
+                ]);
+                DB::table('imageables')->insert([
+                    'images_id'      => $img->id,
+                    'imageable_id'   => $producto->getKey(),
+                    'imageable_type' => Producto::class,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
+        }
+
+        $producto->load(['categoria', 'images']);
         return response()->json([
-            'message'  => 'Producto actualizado correctamente',
-            'producto' => $prod
+            'message'  => 'producto actualizado correctamente',
+            'producto' => $producto
         ], Response::HTTP_OK);
     }
 
-    // ELIMINAR producto (y sus imágenes en pivote por cascade)
+
     public function destroy($id)
     {
-        $prod = Producto::findOrFail($id);
-        $prod->delete();
-        return response()->json(['message' => 'Producto eliminado correctamente'], Response::HTTP_OK);
+        $producto = Producto::findOrFail($id);
+
+        foreach ($producto->images as $img) {
+            Storage::disk('public')->delete($img->url);
+            $img->delete();
+        }
+
+        $producto->delete();
+
+        return response()->json([
+            'message' => 'producto eliminado correctamente'
+        ], Response::HTTP_OK);
     }
 }

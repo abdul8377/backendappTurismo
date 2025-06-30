@@ -16,7 +16,7 @@ class TiposDeNegocioSeeder extends Seeder
                 'descripcion' => 'Venta de productos típicos andinos, como artesanías, textiles y alimentos locales.',
                 'created_at' => now(),
                 'updated_at' => now(),
-                /* id 2 */
+                /* id 1 */
             ],
             [
                 'nombre' => 'Gastronomía',

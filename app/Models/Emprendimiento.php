@@ -27,7 +27,6 @@ class Emprendimiento extends Model
 
     protected $appends = ["imagenes_url"];
 
-
     // Relación polimórfica con iamgenes
      public function images(): MorphToMany
     {

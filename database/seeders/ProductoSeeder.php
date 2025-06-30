@@ -73,7 +73,7 @@ class ProductoSeeder extends Seeder
                 'nombre'                   => 'pruebas asd',
                 'descripcion'              => 'Diseño tradicional andino',
                 'precio'                   => 77.60,
-                'stock'                    => 100,
+                'stock'                    => 3,
                 'estado'                   => 'activo',
                 'imagen'                   => database_path('seeders/fixtures/productos/producto1.jpeg'),
             ],

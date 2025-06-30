@@ -15,30 +15,45 @@ class ServicioApiController extends Controller
 {
     public function index(Request $request)
     {
-        $tipoNegocioId = $request->input('tipo_negocio_id');
 
         $query = Servicio::with(['emprendimiento', 'images']);
 
-        if ($tipoNegocioId) {
-            $query->whereHas('emprendimiento', function ($q) use ($tipoNegocioId) {
-                $q->where('tipo_negocio_id', $tipoNegocioId);
-            });
+
+        $user = $request->user();
+        if ($user) {
+
+            $pivot = DB::table('emprendimiento_usuarios')
+                ->where('users_id', $user->id)
+                ->first();
+
+            if ($pivot && $pivot->emprendimientos_id) {
+                // Filtra sólo sus servicios
+                $query->where('emprendimientos_id', $pivot->emprendimientos_id);
+            }
+        } else {
+
+            if ($request->filled('tipo_negocio_id')) {
+                $tipoNegocioId = $request->input('tipo_negocio_id');
+                $query->whereHas('emprendimiento', function ($q) use ($tipoNegocioId) {
+                    $q->where('tipo_negocio_id', $tipoNegocioId);
+                });
+            }
         }
 
+        // 4) Ejecuta y devuelve
         $servicios = $query->get();
-
         return response()->json($servicios, Response::HTTP_OK);
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'emprendimientos_id'      => 'required|integer|exists:emprendimientos,emprendimientos_id',
             'nombre'                  => 'required|string|max:150',
             'descripcion'             => 'nullable|string',
             'precio'                  => 'required|numeric|min:0',
             'capacidad_maxima'        => 'required|integer|min:1',
             'duracion_servicio'       => 'nullable|string',
+            'estado'                  => 'nullable|in:activo,inactivo',
             'imagenes.*'              => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
@@ -46,18 +61,26 @@ class ServicioApiController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // 1) Crear el servicio sin imágenes
         $data = $validator->validated();
-        unset($data['imagenes']);
+
+        $user = $request->user();
+        $emprId = DB::table('emprendimiento_usuarios')
+            ->where('users_id', $user->id)
+            ->value('emprendimientos_id');
+
+        if (! $emprId) {
+            return response()->json(['error' => 'El usuario no tiene un emprendimiento asignado'], 403);
+        }
+        $data['emprendimientos_id'] = $emprId;
+
         $servicio = Servicio::create($data);
 
-        // 2) Si llegaron archivos en 'imagenes[]', guardarlos y asociar
         if ($request->hasFile('imagenes')) {
             foreach ($request->file('imagenes') as $file) {
-                // Guardar en disco bajo “servicios/{id}/...”
+
                 $path = $file->store("servicios/{$servicio->getKey()}", 'public');
 
-                // Crear registro en tabla `images`
+
                 $img = Images::create([
                     'url'    => $path,
                     'titulo' => $servicio->nombre . ' (Imagen)',
@@ -109,19 +132,22 @@ class ServicioApiController extends Controller
             'precio'                  => 'sometimes|required|numeric|min:0',
             'capacidad_maxima'        => 'sometimes|required|integer|min:1',
             'duracion_servicio'       => 'nullable|string',
+            'estado'                  => 'nullable|in:activo,inactivo',
             'imagenes.*'              => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'imagenes_a_eliminar' => 'nullable|array',
+            'imagenes_a_eliminar.*' => 'integer|exists:images,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // 1) Actualizar campos del servicio
+
         $data = $validator->validated();
         unset($data['imagenes']);
         $servicio->update($data);
 
-        // 2) Si enviaron nuevos archivos en 'imagenes[]', guardarlos y vincularlos
+
         if ($request->hasFile('imagenes')) {
             foreach ($request->file('imagenes') as $file) {
                 $path = $file->store("servicios/{$servicio->getKey()}", 'public');
@@ -138,8 +164,21 @@ class ServicioApiController extends Controller
                 ]);
             }
         }
+        if ($request->filled('imagenes_a_eliminar')) {
+            foreach ($request->input('imagenes_a_eliminar') as $imgId) {
+                $img = Images::find($imgId);
+                if ($img) {
+                    // Borra archivo físico
+                    Storage::disk('public')->delete($img->url);
 
-        // 3) Devolver con relaciones recargadas
+                    // Borra pivote y la imagen
+                    DB::table('imageables')->where('images_id', $img->id)->delete();
+                    $img->delete();
+                }
+            }
+        }
+
+
         $servicio->load(['emprendimiento', 'images']);
         return response()->json([
             'message'  => 'Servicio actualizado correctamente',
@@ -147,25 +186,20 @@ class ServicioApiController extends Controller
         ], Response::HTTP_OK);
     }
 
-    /**
-     * DELETE /api/servicios/{id}
-     * Elimina un servicio y todas sus imágenes asociadas
-     */
     public function destroy($id)
     {
         $servicio = Servicio::findOrFail($id);
 
-        // 1) Borrar archivos físicos y registros en images + pivote
         foreach ($servicio->images as $img) {
             Storage::disk('public')->delete($img->url);
-            $img->delete(); // Esto cascada borrará también de imageables
+            $img->delete();
         }
 
-        // 2) Eliminar el propio servicio
         $servicio->delete();
 
         return response()->json([
             'message' => 'Servicio eliminado correctamente'
         ], Response::HTTP_OK);
     }
+
 }

@@ -41,6 +41,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call(EmprendimientoSeeder::class);
 
+        $this->call(EmprendimientoUsuariosSeeder::class);
+
 
         // Municipalidad (solo un registro)
         $this->call(MunicipalidadDescripcionSeeder::class);
@@ -49,6 +51,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ProductoSeeder::class);
 
         $this->call(ServicioSeeder::class);
+
+        $this->call(PaquetesSeeder::class);
     }
 }
 

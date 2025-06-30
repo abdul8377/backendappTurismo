@@ -9,17 +9,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
-
+use Illuminate\Support\Facades\Storage;
 class ZonaTuristicaApiController extends Controller
 {
-    // 1. Listar con imágenes
+
     public function index()
     {
         $zonas = ZonaTuristica::with('images')->get();
         return response()->json($zonas, Response::HTTP_OK);
     }
 
-    // 2. Crear con imagen
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -34,25 +34,29 @@ class ZonaTuristicaApiController extends Controller
             return response()->json(['error'=>$validator->errors()], 422);
         }
 
-        // Crea la zona sin la imagen
-        $zona = ZonaTuristica::create($request->only('nombre','descripcion','ubicacion','estado'));
+        $data = $validator->validated();
 
-        // Si viene archivo, lo guarda y relaciona
+
+
+        $zona = ZonaTuristica::create($data);
+
         if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('zonas', 'public');
+            foreach($request->file('imagen') as $file){
+                $path = $file->store("ZonasTuristicas/{$zona->getKey()}", 'public');
 
-            $imagen = Images::create([
-                'url'    => $path,
-                'titulo' => $zona->nombre,
-            ]);
+                $imagen = Images::create([
+                    'url'    => $path,
+                    'titulo' => $zona->nombre,
+                ]);
 
-            DB::table('imageables')->insert([
-                'images_id'      => $imagen->id,
-                'imageable_id'   => $zona->zonas_turisticas_id,
-                'imageable_type' => ZonaTuristica::class,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
+                DB::table('imageables')->insert([
+                    'images_id'      => $imagen->id,
+                    'imageable_id'   => $zona->zonas_turisticas_id,
+                    'imageable_type' => ZonaTuristica::class,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
         }
         $zona->load('images');
         return response()->json([
@@ -61,14 +65,12 @@ class ZonaTuristicaApiController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    // 3. Mostrar una
     public function show($id)
     {
         $zona = ZonaTuristica::with('images')->findOrFail($id);
         return response()->json($zona, Response::HTTP_OK);
     }
 
-    // 4. Actualizar (y opcionalmente cambiar imagen)
     public function update(Request $request, $id)
     {
         $zona = ZonaTuristica::findOrFail($id);
@@ -77,37 +79,53 @@ class ZonaTuristicaApiController extends Controller
             'nombre'      => 'required|string|max:150',
             'descripcion' => 'nullable|string',
             'ubicacion'   => 'nullable|string|max:255',
-            'imagen'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'estado'      => 'in:activo,inactivo',
+            'imagen'              => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'imagen_a_eliminar' => 'nullable|array',
+            'imagen_a_eliminar.*' => 'integer|exists:images,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()], 422);
         }
 
-        $zona->update($request->only('nombre','descripcion','ubicacion','estado'));
+        $data = $validator->validated();
+        unset($data['imagen']);
+        $zona->update($data);
 
         if ($request->hasFile('imagen')) {
-            // (Opcional) borrar imágenes previas si lo deseas…
+            foreach ($request->file('imagen') as $file){
+            $path = $file->store("zonasTuriticas/{$zona->getKey()}", 'public');
 
-            $path = $request->file('imagen')->store('zonas', 'public');
-            $imagen = Images::create([
-                'url'    => $path,
-                'titulo' => $zona->nombre,
-            ]);
-            DB::table('imageables')->insert([
-                'images_id'      => $imagen->id,
-                'imageable_id'   => $zona->zonas_turisticas_id,
-                'imageable_type' => ZonaTuristica::class,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
+                $imagen = Images::create([
+                    'url'    => $path,
+                    'titulo' => $zona->nombre,
+                ]);
+                DB::table('imageables')->insert([
+                    'images_id'      => $imagen->id,
+                    'imageable_id'   => $zona->zonas_turisticas_id,
+                    'imageable_type' => ZonaTuristica::class,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
         }
-        $zona->load('images');
 
+        if ($request->filled('imagen_a_eliminar')) {
+            foreach ($request->input('imagen_a_eliminar') as $imgId) {
+                $img = Images::find($imgId);
+                if ($img) {
+                    Storage::disk('public')->delete($img->url);
+                    DB::table('imageables')->where('images_id', $img->id)->delete();
+                    $img->delete();
+                }
+            }
+        }
+
+        $zona->load(['images']);
         return response()->json([
-            'message' => 'Zona turística actualizada correctamente',
-            'zona'    => $zona->load('images')
+            'message'  => 'zona turitica actualizada correctamente',
+            'zona' => $zona
         ], Response::HTTP_OK);
     }
 
@@ -115,7 +133,18 @@ class ZonaTuristicaApiController extends Controller
     public function destroy($id)
     {
         $zona = ZonaTuristica::findOrFail($id);
+
+        foreach ($zona->images as $img) {
+            Storage::disk('public')->delete($img->url);
+            DB::table('imageables')->where('images_id', $img->id)->delete();
+            $img->delete();
+        }
+
         $zona->delete();
-        return response()->json(['message'=>'Zona turística eliminada correctamente'], Response::HTTP_OK);
+
+        return response()->json([
+            'message' => 'zona turitica eliminada correctamente'
+        ], Response::HTTP_OK);
+
     }
 }
