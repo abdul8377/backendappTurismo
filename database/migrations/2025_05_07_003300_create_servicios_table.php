@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('precio', 10, 2);
             $table->integer('capacidad_maxima');
             $table->string('duracion_servicio')->nullable();
+            $table->enum('estado', ['activo', 'inactivo'])->default('activo');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 

@@ -42,6 +42,8 @@ class DatabaseSeeder extends Seeder
         $this->call(EmprendimientoSeeder::class);
         $this->call(PlataformaSeeder::class);
 
+        $this->call(EmprendimientoUsuariosSeeder::class);
+
 
         // Municipalidad (solo un registro)
         $this->call(MunicipalidadDescripcionSeeder::class);
@@ -51,6 +53,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(ServicioSeeder::class);
 
+        $this->call(PaquetesSeeder::class);
         $this->call(FavoritosTableSeeder::class);
 
         $this->call(MetodoPagoSeeder::class);

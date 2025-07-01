@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class Servicio extends Model
 {
-    use HasFactory;
+
     protected $table = 'servicios';
     protected $primaryKey = 'servicios_id';
     public $timestamps = true;
@@ -22,6 +22,9 @@ class Servicio extends Model
         'precio',
         'capacidad_maxima',
         'duracion_servicio',
+        'estado',
+
+
     ];
 
     protected $appends = ['imagenes_url','imagen_url'];

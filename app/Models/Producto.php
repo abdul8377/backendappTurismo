@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -22,35 +24,46 @@ class Producto extends Model
         'stock',
         'capacidad_total',
         'estado',
-        'imagen',
     ];
-    protected $appends = ['imagen_url'];
+    protected $appends = ['imagenes_url','imagen_url'];
 
-    // Relación polimórfica con iamgenes
-    public function images(): BelongsToMany
+    public function images(): MorphToMany
     {
-        return $this->belongsToMany(
-            Images::class,       // Modelo destino
-            'imageables',        // Nombre de la tabla pivote
-            'imageable_id',      // FK en pivote que apunta a categorias_servicios.categorias_servicios_id
-            'images_id'          // FK en pivote que apunta a images.id
+        return $this->morphToMany(
+            Images::class,
+            'imageable',
+            'imageables',
+            'imageable_id',
+            'images_id'
         )
-        ->wherePivot('imageable_type', self::class)  // Sólo las filas cuyo imageable_type coincida
-        ->withTimestamps();                          // Para usar created_at / updated_at en pivote
+            ->withTimestamps();
+    }
+
+
+    public function getImagenesUrlAttribute(): array
+    {
+        return $this->images
+            ->map(function ($img) {
+                $url = $img->url;
+                if (Str::startsWith($url, ['http://', 'https://'])) {
+                    return $url;
+                }
+                return URL::to('storage/' . $url);
+            })
+            ->toArray();
     }
 
     public function getImagenUrlAttribute(): ?string
     {
-        $img = $this->images()->get()->first();
+        $img = $this->images()->first();
         if (! $img) {
             return null;
         }
         $url = $img->url;
-        if (Str::startsWith($url, ['http://','https://'])) {
+        if (Str::startsWith($url, ['http://', 'https://'])) {
             return $url;
         }
         return URL::to("storage/{$url}");
-
     }
 
     // Producto.php  (añade la relación que faltaba)

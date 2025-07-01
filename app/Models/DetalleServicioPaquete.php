@@ -17,11 +17,11 @@ class DetalleServicioPaquete extends Model
 
     public function paquete()
     {
-        return $this->belongsTo(Paquete::class, 'paquetes_id', 'paquetes_id');
+        return $this->belongsTo(Paquete::class, 'paquetes_id');
     }
 
     public function servicio()
     {
-        return $this->belongsTo(Servicio::class, 'servicios_id', 'servicios_id');
+        return $this->belongsTo(Servicio::class, 'servicios_id');
     }
 }
