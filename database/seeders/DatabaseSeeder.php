@@ -38,8 +38,9 @@ class DatabaseSeeder extends Seeder
         // Crear el perfil de los emprendedores
         // $this->call(PerfilEmprendedorSeeder::class);
         // $this->call(EmprendedorSeeder::class);
-        $this->call(PlataformaSeeder::class);
+
         $this->call(EmprendimientoSeeder::class);
+        $this->call(PlataformaSeeder::class);
 
 
         // Municipalidad (solo un registro)

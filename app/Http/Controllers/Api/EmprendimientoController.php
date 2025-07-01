@@ -15,86 +15,67 @@ use Illuminate\Support\Facades\Validator;
 
 class EmprendimientoController extends Controller
 {
-
+    // Obtener todos los emprendimientos
     public function index()
     {
-
-        $list = Emprendimiento::with(['tipoDeNegocio','images'])->get();
+        $list = Emprendimiento::with(['tipoDeNegocio', 'images'])->get();
         return response()->json($list, Response::HTTP_OK);
     }
-
-
 
     // Crear nuevo emprendimiento con estado pendiente + crear solicitud automática rol propietario
     public function store(Request $request)
     {
+        // Validar los datos de la solicitud
         $validator = Validator::make($request->all(), [
-            'nombre'          => 'required|string|max:255',
-            'descripcion'     => 'required|string',
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string',
             'tipo_negocio_id' => 'required|integer|exists:tipos_de_negocio,id',
-            'direccion'       => 'required|string|max:255',
-            'telefono'        => 'required|string|max:20',
-            'estado'          => 'in:activo,inactivo,pendiente',
-            'imagenes.*'          => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'direccion' => 'required|string|max:255',
+            'telefono' => 'required|string|max:20',
+            'estado' => 'in:activo,inactivo,pendiente',
+            'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
+
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // 1) Creamos el emprendimiento
+        // Crear el emprendimiento
         $data = $validator->validated();
-        unset($data['imagenes']); // porque no pertenece directamente a la tabla
+        unset($data['imagenes']);
         $data['fecha_registro'] = now();
         $empr = Emprendimiento::create($data);
 
-        // 2) Si enviaron archivos en 'imagenes[]', súbelos y asócialos
+        // Subir imágenes si las hay
         if ($request->hasFile('imagenes')) {
             foreach ($request->file('imagenes') as $file) {
-                // 2.1) Guardar en disco en carpeta "emprendimientos/{id}"
+                // Guardar en disco
                 $path = $file->store("emprendimientos/{$empr->getKey()}", 'public');
 
-                // 2.2) Crear registro en tabla "images"
+                // Crear el registro en "images"
                 $img = Images::create([
-                    'url'    => $path,
+                    'url' => $path,
                     'titulo' => $empr->nombre . ' (Imagen)',
                 ]);
 
-                // 2.3) Insertar en pivot "imageables"
+                // Insertar en la tabla pivot "imageables"
                 DB::table('imageables')->insert([
-                    'images_id'      => $img->id,
-                    'imageable_id'   => $empr->getKey(),
+                    'images_id' => $img->id,
+                    'imageable_id' => $empr->getKey(),
                     'imageable_type' => Emprendimiento::class,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }
 
-        // Recargamos la relación para devolverla
-        $empr->load(['tipoDeNegocio','images']);
-        return response()->json([
-            'message'       => 'Emprendimiento creado correctamente',
-            'emprendimiento'=> $empr
-        ], Response::HTTP_CREATED);
-
-
+        // Crear la solicitud para el rol propietario
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $emprendimiento = null;
-
-        DB::transaction(function () use ($request, $user, &$emprendimiento) {
-            $emprendimiento = Emprendimiento::create([
-                'nombre' => $request->nombre,
-                'descripcion' => $request->descripcion,
-                'tipo_negocio_id' => $request->tipo_negocio_id,
-                'direccion' => $request->direccion,
-                'telefono' => $request->telefono,
-                'estado' => 'pendiente',
-            ]);
-
+        DB::transaction(function () use ($request, $user, $empr) {
             SolicitudEmprendimiento::create([
-                'emprendimientos_id' => $emprendimiento->emprendimientos_id,
+                'emprendimientos_id' => $empr->emprendimientos_id,
                 'users_id' => $user->id,
                 'rol_solicitado' => 'propietario',
                 'estado' => 'pendiente',
@@ -102,87 +83,89 @@ class EmprendimientoController extends Controller
             ]);
         });
 
+        // Cargar relaciones
+        $empr->load(['tipoDeNegocio', 'images']);
         return response()->json([
-            'message' => 'Emprendimiento creado, pendiente de activación y solicitud creada',
-            'data' => $emprendimiento,
-        ], 201);
+            'message' => 'Emprendimiento creado correctamente',
+            'emprendimiento' => $empr
+        ], Response::HTTP_CREATED);
     }
 
+    // Obtener detalles de un emprendimiento específico
     public function show($id)
     {
-        $empr = Emprendimiento::with(['tipoDeNegocio','images'])->findOrFail($id);
+        $empr = Emprendimiento::with(['tipoDeNegocio', 'images'])->findOrFail($id);
         return response()->json($empr, Response::HTTP_OK);
     }
 
-
-
+    // Actualizar un emprendimiento
     public function update(Request $request, $id)
     {
         $empr = Emprendimiento::findOrFail($id);
 
         $v = Validator::make($request->all(), [
-            'nombre'           => 'sometimes|required|string|max:255',
-            'descripcion'      => 'nullable|string',
-            'tipo_negocio_id'  => 'nullable|integer|exists:tipos_de_negocio,id',
-            'direccion'        => 'nullable|string|max:255',
-            'telefono'         => 'nullable|string|max:20',
-            'estado'           => 'in:activo,inactivo,pendiente',
-            'imagenes.*'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'nombre' => 'sometimes|required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'tipo_negocio_id' => 'nullable|integer|exists:tipos_de_negocio,id',
+            'direccion' => 'nullable|string|max:255',
+            'telefono' => 'nullable|string|max:20',
+            'estado' => 'in:activo,inactivo,pendiente',
+            'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         if ($v->fails()) {
             return response()->json(['errors' => $v->errors()], 422);
         }
 
-        // 1) Actualizar los campos “normales”
+        // Actualizar datos del emprendimiento
         $data = $v->validated();
         unset($data['imagenes']);
         $empr->update($data);
 
-        // 2) Si vienen nuevos archivos en 'imagenes[]', guardarlos y asociarlos
+        // Subir imágenes si las hay
         if ($request->hasFile('imagenes')) {
             foreach ($request->file('imagenes') as $file) {
                 $path = $file->store("emprendimientos/{$empr->getKey()}", 'public');
-                $img  = Images::create([
-                    'url'    => $path,
+                $img = Images::create([
+                    'url' => $path,
                     'titulo' => $empr->nombre . ' (Imagen)',
                 ]);
                 DB::table('imageables')->insert([
-                    'images_id'      => $img->id,
-                    'imageable_id'   => $empr->getKey(),
+                    'images_id' => $img->id,
+                    'imageable_id' => $empr->getKey(),
                     'imageable_type' => Emprendimiento::class,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }
 
-        // 3) Devolver con relaciones actualizadas
-        $empr->load(['tipoDeNegocio','images']);
+        // Recargar relaciones
+        $empr->load(['tipoDeNegocio', 'images']);
         return response()->json([
-            'message'       => 'Emprendimiento actualizado correctamente',
-            'emprendimiento'=> $empr
+            'message' => 'Emprendimiento actualizado correctamente',
+            'emprendimiento' => $empr
         ], Response::HTTP_OK);
     }
 
+    // Eliminar un emprendimiento
     public function destroy($id)
     {
         $empr = Emprendimiento::findOrFail($id);
 
-        // 1) Borrar archivos físicos y registros en images + imageables
+        // Eliminar imágenes asociadas
         foreach ($empr->images as $img) {
             Storage::disk('public')->delete($img->url);
-            $img->delete(); // cascade eliminará del pivot
+            $img->delete();
         }
 
-        // 2) Eliminar el emprendimiento
+        // Eliminar el emprendimiento
         $empr->delete();
 
         return response()->json([
             'message' => 'Emprendimiento eliminado correctamente'
         ], Response::HTTP_OK);
     }
-
 
     // Activar emprendimiento pendiente y aprobar solicitud propietario automáticamente
     public function activarEmprendimiento($id)
@@ -232,12 +215,12 @@ class EmprendimientoController extends Controller
         ]);
     }
 
-    // Enviar solicitud para unirse a emprendimiento existente (rol colaborador)
+    // Enviar solicitud para unirse a un emprendimiento existente (rol colaborador)
     public function enviarSolicitud(Request $request)
     {
         $request->validate([
             'codigo_unico' => 'required|string|size:6|exists:emprendimientos,codigo_unico',
-            'rol_solicitado' => 'required|in:colaborador,propietario', // Solo colaborador o propietario, usualmente colaborador
+            'rol_solicitado' => 'required|in:colaborador,propietario', // Solo colaborador o propietario
         ]);
 
         /** @var \App\Models\User $user */
@@ -247,7 +230,7 @@ class EmprendimientoController extends Controller
             ->where('estado', 'activo')
             ->firstOrFail();
 
-        // Verificar si usuario ya pertenece al emprendimiento
+        // Verificar si el usuario ya pertenece al emprendimiento
         if ($emprendimiento->usuarios()->where('users_id', $user->id)->exists()) {
             return response()->json(['message' => 'Ya perteneces a este emprendimiento'], 400);
         }
@@ -338,7 +321,6 @@ class EmprendimientoController extends Controller
                 ]);
 
                 // Cambiar rol global del usuario
-                /** @var \App\Models\User $usuario */
                 $usuario = $solicitud->usuario;
                 if (!$usuario->hasRole('Emprendedor')) {
                     $usuario->syncRoles(['Emprendedor']);
@@ -360,7 +342,6 @@ class EmprendimientoController extends Controller
     // Mostrar solicitudes del usuario
     public function solicitudesUsuario()
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $solicitudes = SolicitudEmprendimiento::where('users_id', $user->id)
@@ -369,38 +350,4 @@ class EmprendimientoController extends Controller
 
         return response()->json(['data' => $solicitudes]);
     }
-
-    public function estadoSolicitudEmprendedor()
-{
-    /** @var \App\Models\User|null $user */
-    $user = Auth::user();
-
-    if (!$user) {
-        return response()->json([
-            'error' => 'Usuario no autenticado.'
-        ], 401);
-    }
-
-    // Buscar solicitudes pendientes del usuario
-    $solicitudPendiente = SolicitudEmprendimiento::where('users_id', $user->id)
-        ->where('estado', 'pendiente')
-        ->first();
-
-    // Verificar si existe la relación 'emprendimientos' y que el usuario tenga emprendimientos activos con rol propietario o colaborador
-    $tieneEmprendimientoActivo = false;
-    if (method_exists($user, 'emprendimientos')) {
-        $tieneEmprendimientoActivo = $user->emprendimientos()
-            ->wherePivotIn('rol_emprendimiento', ['propietario', 'colaborador']) // roles que quieres considerar
-            ->where('estado', 'activo')
-            ->exists();
-    }
-
-    return response()->json([
-        'tieneSolicitudPendiente' => $solicitudPendiente !== null,
-        'tieneEmprendimientoActivo' => $tieneEmprendimientoActivo,
-        'estadoSolicitud' => $solicitudPendiente ? $solicitudPendiente->estado : null,
-    ]);
-}
-
-
 }

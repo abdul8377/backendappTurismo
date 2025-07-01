@@ -25,7 +25,7 @@ use App\Http\Controllers\Api\VentaController;
 use App\Http\Controllers\EmprendimientoUsuario\EmprendimientoUsuarioController;
 use App\Http\Controllers\Api\ReservaApiController;
 use App\Http\Controllers\Api\DetalleReservaApiController;
-use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\PaymentController;
 
 
 /* =================================================================
@@ -41,7 +41,8 @@ Route::prefix('auth')->group(function () {
     Route::post('password/reset',       [AuthController::class, 'resetPassword']);
 });
 
-Route::post('/create-token', [PaymentController::class, 'createToken']);
+
+// Route::post('/create-token', [PaymentController::class, 'createToken']);
 
 /* --- Catálogos públicos (solo lectura) --------------------------- */
 Route::get('emprendimientos',          [EmprendimientoController::class, 'index']);
@@ -71,11 +72,46 @@ Route::get('servicios/{id}',  [ServicioApiController::class, 'show']);
 |================================================================= */
 Route::middleware('auth:sanctum')->group(function () {
 
+      // Obtener todos los emprendimientos
+    Route::get('/emprendimientos', [EmprendimientoController::class, 'index']);
+
+    // Crear un nuevo emprendimiento
+    Route::post('/emprendimientos', [EmprendimientoController::class, 'store']);
+
+    // Obtener un emprendimiento específico
+    Route::get('/emprendimientos/{id}', [EmprendimientoController::class, 'show']);
+
+    // Actualizar un emprendimiento
+    Route::put('/emprendimientos/{id}', [EmprendimientoController::class, 'update']);
+
+    // Eliminar un emprendimiento
+    Route::delete('/emprendimientos/{id}', [EmprendimientoController::class, 'destroy']);
+
+    // Activar un emprendimiento pendiente
+    Route::put('/emprendimientos/{id}/activar', [EmprendimientoController::class, 'activarEmprendimiento']);
+
+    // Enviar solicitud para unirse a un emprendimiento
+    Route::post('/emprendimientos/solicitudes', [EmprendimientoController::class, 'enviarSolicitud']);
+
+    // Listar solicitudes pendientes para un emprendimiento (solo propietario/admin)
+    Route::get('/emprendimientos/{id}/solicitudes-pendientes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
+
+    // Aprobar o rechazar una solicitud
+    Route::put('/emprendimientos/solicitudes/{solicitudId}/responder', [EmprendimientoController::class, 'responderSolicitud']);
+
+    // Obtener todas las solicitudes de un usuario
+    Route::get('/emprendimientos/solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
+
+    // Obtener el estado de la solicitud de emprendimiento
+    Route::get('/emprendimientos/estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
+
+
     /* ------ Información del usuario y logout -------------------- */
     Route::post('auth/logout', function (Request $r) { return (new AuthController)->logout($r); });
     Route::get('user', fn(Request $r) => $r->user());
     Route::get   ('users/{id}',            [UserController::class, 'show']);
 
+    Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
 
     /* ------ Usuarios (Admin / Moderador) ------------------------ */
     Route::middleware('role:Administrador|Moderador')->group(function () {
@@ -120,10 +156,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /* ------ Checkout / Ventas ----------------------------------- */
     Route::controller(VentaController::class)->group(function () {
-        Route::post('/checkout',          'store');          // crea venta + movimientos
-        Route::post('/ventas/{venta}/pagar', 'procesarPago'); // procesa pago Stripe
-        Route::get ('/compras',           'listarCompras');  // historial del comprador
+        Route::post('/checkout', 'store');
+        Route::post('/ventas/{venta}/pagar', 'procesarPago');
+        Route::get('/compras', 'listarCompras'); // ← esta ruta es importante
     });
+
 
     /* ------ Reservas y detalles (cualquier auth) ---------------- */
     Route::apiResource('reservas',        ReservaApiController::class);
@@ -195,4 +232,40 @@ Route::middleware('auth:sanctum')
           //    Body JSON: { "contenido": "Hola...", "imagen_url": null }
           Route::post('/{conversaciones_id}/mensajes', 'enviar');
       });
+});
+
+Route::prefix('emprendimiento')->middleware('auth:sanctum')->group(function () {
+
+    // Obtener todos los emprendimientos
+    Route::get('/', [EmprendimientoController::class, 'index']);
+
+    // Crear un nuevo emprendimiento (solo usuarios autenticados)
+    Route::post('/', [EmprendimientoController::class, 'store']);
+
+    // Obtener los detalles de un emprendimiento específico
+    Route::get('{id}', [EmprendimientoController::class, 'show']);
+
+    // Actualizar un emprendimiento (solo usuarios autenticados)
+    Route::put('{id}', [EmprendimientoController::class, 'update']);
+
+    // Eliminar un emprendimiento (solo usuarios autenticados)
+    Route::delete('{id}', [EmprendimientoController::class, 'destroy']);
+
+    // Activar un emprendimiento pendiente y aprobar solicitud propietario
+    Route::post('{id}/activar', [EmprendimientoController::class, 'activarEmprendimiento']);
+
+    // Enviar solicitud para unirse a un emprendimiento existente (rol colaborador)
+    Route::post('solicitud', [EmprendimientoController::class, 'enviarSolicitud']);
+
+    // Listar solicitudes pendientes para un emprendimiento (solo propietario/admin)
+    Route::get('{emprendimientoId}/solicitudes-pendientes', [EmprendimientoController::class, 'listarSolicitudesPendientes']);
+
+    // Aprobar o rechazar solicitud
+    Route::post('solicitud/{solicitudId}/respuesta', [EmprendimientoController::class, 'responderSolicitud']);
+
+    // Mostrar todas las solicitudes de un usuario
+    Route::get('mis-solicitudes', [EmprendimientoController::class, 'solicitudesUsuario']);
+
+    // Ver el estado de la solicitud de emprendimiento del usuario
+    Route::get('estado-solicitud', [EmprendimientoController::class, 'estadoSolicitudEmprendedor']);
 });

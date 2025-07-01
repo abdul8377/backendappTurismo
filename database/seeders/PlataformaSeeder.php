@@ -10,7 +10,7 @@ class PlataformaSeeder extends Seeder
     public function run(): void
     {
         Emprendimiento::updateOrCreate(
-            ['emprendimientos_id' => 1],   // PK deseada
+            ['emprendimientos_id' => 999],   // PK deseada
             [
                 'codigo_unico'   => 'SYSPLT',  // asegúrate de que sea único
                 'nombre'         => 'Plataforma',

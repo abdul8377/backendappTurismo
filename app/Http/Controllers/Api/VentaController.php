@@ -6,36 +6,34 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use App\Models\{Venta, DetalleVenta, Carrito, Producto, Servicio,
-               MetodoPago, Pago, MovimientoCuenta, ParametroFinanciero};
-use Stripe\{Stripe, Charge};
+use App\Models\{
+    Venta, DetalleVenta, Producto, Servicio, MetodoPago, Pago, MovimientoCuenta, ParametroFinanciero
+};
+use Stripe\{Stripe, PaymentIntent};
 use Stripe\Exception\ApiErrorException;
 
 class VentaController extends Controller
 {
-    /** ▸ Paso 1: checkout */
+    /** ▸ Crear la venta inicial (sin pago aún) */
     public function store(Request $request)
     {
-        $user   = $request->user();
-        $items  = $user->carrito()->where('estado', 'en proceso')->get();
+        $user  = $request->user();
+        $items = $user->carrito()->where('estado', 'en proceso')->get();
 
         if ($items->isEmpty()) {
-            return response()->json(['message' => 'No tienes productos o servicios en el carrito.'], 422);
+            return response()->json(['message' => 'Carrito vacío.'], 422);
         }
 
-        /* Verificar stock */
         foreach ($items as $item) {
             if ($item->productos_id) {
-                $p = Producto::find($item->productos_id);
-                if ($p->stock < $item->cantidad) {
-                    return response()->json(['message' => "No hay suficiente stock de {$p->nombre}."], 422);
+                $producto = Producto::find($item->productos_id);
+                if ($producto->stock < $item->cantidad) {
+                    return response()->json(['message' => "No hay suficiente stock de {$producto->nombre}."], 422);
                 }
             }
         }
 
-        /* ───────── Transacción ───────── */
         $venta = DB::transaction(function () use ($user, $items, $request) {
-
             $venta = Venta::create([
                 'user_id'        => $user->id,
                 'codigo_venta'   => Str::upper(Str::random(12)),
@@ -47,20 +45,14 @@ class VentaController extends Controller
             $comisionPct = ParametroFinanciero::float('comision_porcentaje', 10);
 
             foreach ($items as $it) {
-
-                /* Determinar a qué emprendimiento pertenece el ítem */
-                $emprendimientoId = null;
+                $emprendimientoId = $it->productos_id
+                    ? Producto::find($it->productos_id)->emprendimientos_id
+                    : Servicio::find($it->servicios_id)->emprendimientos_id;
 
                 if ($it->productos_id) {
-                    $producto          = Producto::find($it->productos_id);
-                    $emprendimientoId  = $producto->emprendimientos_id;
-                    $producto->decrement('stock', $it->cantidad);
-                } elseif ($it->servicios_id) {
-                    $servicio          = Servicio::find($it->servicios_id);
-                    $emprendimientoId  = $servicio->emprendimientos_id;
+                    Producto::find($it->productos_id)->decrement('stock', $it->cantidad);
                 }
 
-                /* Crear detalle */
                 $detalle = DetalleVenta::create([
                     'venta_id'          => $venta->venta_id,
                     'emprendimientos_id'=> $emprendimientoId,
@@ -72,112 +64,96 @@ class VentaController extends Controller
                     'subtotal'          => $it->subtotal,
                 ]);
 
-                /* Movimientos contables */
-                $neto      = $detalle->subtotal * (1 - $comisionPct / 100);
-                $comision  = $detalle->subtotal - $neto;
-
-                // crédito al emprendimiento
                 MovimientoCuenta::create([
                     'emprendimientos_id' => $emprendimientoId,
                     'venta_id'           => $venta->venta_id,
                     'detalle_venta_id'   => $detalle->detalle_venta_id,
                     'tipo'               => MovimientoCuenta::TIPO_VENTA,
-                    'monto'              =>  $neto,
+                    'monto'              => $detalle->subtotal * (1 - $comisionPct / 100),
                     'estado'             => MovimientoCuenta::EST_PENDIENTE,
                 ]);
 
-                // débito de comisión (plataforma)
                 MovimientoCuenta::create([
-                    'emprendimientos_id' => config('app.id_plataforma'), // o null
+                    'emprendimientos_id' => config('app.id_plataforma'),
                     'venta_id'           => $venta->venta_id,
                     'detalle_venta_id'   => $detalle->detalle_venta_id,
                     'tipo'               => MovimientoCuenta::TIPO_COMISION,
-                    'monto'              => -$comision,
+                    'monto'              => -$detalle->subtotal * ($comisionPct / 100),
                     'estado'             => MovimientoCuenta::EST_PENDIENTE,
                 ]);
             }
 
-            /* Vaciar carrito */
             $user->carrito()->where('estado', 'en proceso')->update(['estado' => 'completado']);
 
             return $venta;
         });
 
-        /* Paso 2: procesar pago */
-        return $this->procesarPago($venta, $request);
+        return response()->json([
+            'venta_id' => $venta->venta_id,
+            'codigo_venta' => $venta->codigo_venta,
+            'total' => $venta->total,
+            'estado' => $venta->estado,
+        ], 200);
     }
 
-    /** ▸ Paso 2: pago Stripe */
+    /** ▸ Verificar el pago usando PaymentIntent */
     public function procesarPago(Venta $venta, Request $request)
     {
-        $metodoPago = MetodoPago::find($venta->metodo_pago_id);
-        if (!$metodoPago) {
-            return response()->json(['message' => 'Método de pago no válido.'], 400);
-        }
+        $request->validate(['payment_intent_id' => 'required|string']);
+
+        Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
-            Stripe::setApiKey(config('stripe.secret'));
+            $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
 
-            $charge = Charge::create([
-                'amount'      => $venta->total * 100,
-                'currency'    => 'usd',
-                'source'      => $request->token,
-                'description' => 'Compra en appTurismo',
-            ]);
+            if ($paymentIntent->status !== 'succeeded') {
+                return response()->json(['message' => 'Pago no exitoso.', 'status' => $paymentIntent->status], 400);
+            }
 
-            /* 1) actualizar venta */
-            $venta->update([
-                'estado'     => 'completado',
-                'total_pagado'=> $venta->total,
-                'fecha_pago' => now(),
-            ]);
-
-            /* 2) liberar movimientos */
-            MovimientoCuenta::where('venta_id', $venta->venta_id)
-                ->update([
-                    'estado'    => MovimientoCuenta::EST_LIBERADO,
-                    'stripe_id' => $charge->id,
+            DB::transaction(function () use ($venta, $paymentIntent) {
+                $venta->update([
+                    'estado' => 'completado',
+                    'total_pagado' => $venta->total,
+                    'fecha_pago' => now(),
                 ]);
 
-            /* 3) registrar pago */
-            Pago::create([
-                'metodo_pago_id' => $metodoPago->metodo_pago_id,
-                'user_id'        => $venta->user_id,
-                'monto'          => $venta->total,
-                'referencia'     => $charge->id,
-                'estado'         => 'completado',
-            ]);
+                MovimientoCuenta::where('venta_id', $venta->venta_id)->update([
+                    'estado' => MovimientoCuenta::EST_LIBERADO,
+                    'stripe_id' => $paymentIntent->id,
+                ]);
+
+                Pago::create([
+                    'metodo_pago_id' => $venta->metodo_pago_id,
+                    'user_id' => $venta->user_id,
+                    'monto' => $venta->total,
+                    'referencia' => $paymentIntent->id,
+                    'estado' => 'completado',
+                ]);
+            });
 
             return response()->json([
-                'venta_id'     => $venta->venta_id,
+                'venta_id' => $venta->venta_id,
                 'codigo_venta' => $venta->codigo_venta,
-                'total'        => $venta->total,
-                'estado'       => $venta->estado,
+                'total' => $venta->total,
+                'estado' => $venta->estado,
             ], 200);
 
         } catch (ApiErrorException $e) {
-
             $venta->update(['estado' => 'cancelado']);
-
             MovimientoCuenta::where('venta_id', $venta->venta_id)
                 ->update(['estado' => MovimientoCuenta::EST_CANCELADO]);
 
-            return response()->json([
-                'message'       => 'Pago fallido',
-                'error'         => $e->getMessage(),
-                'stripe_error'  => optional($e->getError())->message,
-                'code'          => $e->getCode(),
-            ], 400);
+            return response()->json(['message' => 'Error validando pago.', 'error' => $e->getMessage()], 400);
         }
     }
-
-    /** ▸ Historial de compras del turista */
+        /** ▸ Historial de compras del usuario autenticado */
     public function listarCompras(Request $request)
     {
-        $ventas = Venta::with(['detalles.producto','detalles.servicio','metodoPago'])
-                       ->where('user_id', $request->user()->id)
-                       ->get();
+        $ventas = Venta::with(['detalles.producto', 'detalles.servicio', 'metodoPago'])
+            ->where('user_id', $request->user()->id)
+            ->orderBy('fecha_pago', 'desc') // Opcional, orden por más reciente
+            ->get();
 
-        return response()->json($ventas);
+        return response()->json($ventas, 200);
     }
 }

@@ -129,13 +129,12 @@ class User extends Authenticatable
         return $this->belongsToMany(
             Emprendimiento::class,
             'emprendimiento_usuarios',
-            'users_id',
-            'emprendimientos_id'
+            'users_id',        // Nombre de la columna de clave foránea en la tabla pivot
+            'emprendimientos_id' // Nombre de la columna de clave foránea en la tabla pivot
         )
-        ->withPivot('rol_emprendimiento', 'fecha_asignacion')
+        ->withPivot('rol_emprendimiento', 'fecha_asignacion') // Si necesitas acceder a estos campos
         ->withTimestamps();
     }
-
     /**
      * Relación uno a muchos con EmprendimientoUsuario.
      */
@@ -152,5 +151,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Carrito::class, 'user_id');
     }
+
+
 
 }

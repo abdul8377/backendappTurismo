@@ -72,12 +72,14 @@ class Emprendimiento extends Model
 
     public function usuarios()
     {
-        return $this->belongsToMany(User::class,
+        return $this->belongsToMany(
+            User::class,
             'emprendimiento_usuarios',
-            'emprendimientos_id',
-            'users_id')
-            ->withPivot('rol_emprendimiento', 'fecha_asignacion')
-            ->withTimestamps();
+            'emprendimientos_id', // Nombre de la columna de clave foránea en la tabla pivot
+            'users_id'             // Nombre de la columna de clave foránea en la tabla pivot
+        )
+        ->withPivot('rol_emprendimiento', 'fecha_asignacion') // Si necesitas acceder a estos campos
+        ->withTimestamps();
     }
 
     /* ─────────── Relaciones añadidas ─────────── */
